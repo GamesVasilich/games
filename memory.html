@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Игра на память</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      text-align: center;
+      background: linear-gradient(135deg, #66bb6a 0%, #43a047 100%);
+      margin: 0;
+      padding: 3px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      padding: 30px;
+    }
+    h1 {
+      color: #2e7d32;
+      margin-bottom: 10px;
+    }
+    .level-selector {
+      margin: 20px 0;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    .level-btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+      font-size: 1rem;
+    }
+    .level-btn.easy { background: #4caf50; color: white; }
+    .level-btn.medium { background: #ff9800; color: white; }
+    .level-btn.hard { background: #f44336; color: white; }
+    .level-btn.custom { background: #9c27b0; color: white; }
+    .level-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0,0.2); }
+
+    .custom-form {
+      margin: 20px auto;
+      padding: 20px;
+      background: #e8f5e9;
+      border-radius: 12px;
+      max-width: 400px;
+      display: none;
+    }
+    .form-group {
+      margin: 15px 0;
+      text-align: left;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: #333;
+      font-weight: 500;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+
+    .settings {
+      margin: 15px 0;
+      padding: 15px;
+      background: #e8f5e9;
+      border-radius: 10px;
+      text-align: left;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+      margin: 25px auto;
+      max-width: 560px;
+      perspective: 1000px;
+      grid-template-columns: repeat(var(--cols), 80px);
+      grid-template-rows: repeat(var(--rows), 80px);
+    }
+    .card {
+      width: 80px;
+      height: 80px;
+      background: #4caf50;
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 28px;
+      color: white;
+      cursor: pointer;
+      transition: transform 0.5s, background 0.3s, box-shadow 0.3s;
+      transform-style: preserve-3d;
+      backface-visibility: hidden;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(255,255,255,0.1);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .card:hover::before { opacity: 1; }
+    .card.flipped {
+      transform: rotateY(180deg);
+      background: #ffeb3b;
+      color: #333;
+    }
+    .card.matched {
+      background: #8bc34a;
+      pointer-events: none;
+      transform: scale(0.95);
+    }
+    .card.mismatched {
+      background: #ffcdd2;
+    }
+
+    #score {
+      font-size: 1.8rem;
+      margin: 15px 0;
+      color: #2e7d32;
+      font-weight: bold;
+    }
+    #timer {
+      font-size: 1.2rem;
+      color: #555;
+      margin: 10px 0;
+    }
+    #subtitle {
+      font-size: 1.1rem;
+      color: #4caf50;
+      margin: 10px 0;
+      min-height: 24px;
+    }
+    button {
+      padding: 14px 28px;
+      background: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: bold;
+      margin: 10px 5px;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #388e3c;
+    }
+    a {
+      display: inline-block;
+      margin: 25px 0 15px;
+      color: #4caf50;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+    .stats {
+      margin: 15px 0;
+      padding: 15px;
+      background: #e8f5e9;
+      border-radius: 10px;
+      text-align: left;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Игра на память</h1>
+
+    <div class="level-selector">
+      <button class="level-btn easy" onclick="startGame(4, 4)">Лёгкий (4×4)</button>
+      <button class="level-btn medium" onclick="startGame(5, 6)">Средний (5×6)</button>
+      <button class="level-btn hard" onclick="startGame(6, 8)">Сложный (6×8)</button>
+      <button class="level-btn custom" onclick="toggleCustom()">Свой режим</button>
+    </div>
+
+    <div id="custom-form" class="custom-form">
+      <div class="form-group">
+        <label for="width">Ширина (от 2 до 10):</label>
+        <input type="number" id="width" min="2" max="10" value="4">
+      </div>
+      <div class="form-group">
+        <label for="height">Высота (от 2 до 16):</label>
+        <input type="number" id="height" min="2" max="16" value="4">
+      </div>
+      <button onclick="startCustomGame()">Начать игру</button>
+    </div>
+
+        <div class="settings">
+      <div class="checkbox-group">
+        <input type="checkbox" id="subtitle-toggle">
+        <label for="subtitle-toggle">Включить субтитры (озвучивание открытых карточек)</label>
+      </div>
+    </div>
+
+    <div id="timer">Время: 00:00</div>
+    <div id="score">Пар найдено: 0 / <span id="total-pairs">0</span></div>
+    <div id="subtitle"></div> <!-- Область для вывода субтитров -->
+
+    <div class="grid" id="grid"></div>
+
+    <div class="stats">
+      <p>Попыток: <span id="attempts">0</span></p>
+      <p>Точность: <span id="accuracy">0%</span></p>
+    </div>
+
+    <button onclick="resetGame()">Новая игра</button>
+    <a href="index.html">← В меню</a>
+  </div>
+
+  <script>
+    const symbols = ['💜', '⭐', '❤️', '♠', '♦', '♣', '♥', '☯', '⚡', '❄', '✨', '🔮', '🐉', '👑', '💎', '🍀', '🍕', '🚀', '🎮', '🌈', '🌸', '🍂'];
+    
+    let cards = [];
+    let flipped = [];
+    let matches = 0;
+    let attempts = 0;
+    let totalPairs = 0;
+    let gridSize = { cols: 4, rows: 4 };
+    let timerInterval;
+    let seconds = 0;
+    let subtitlesEnabled = false; // Флаг включения субтитров
+
+    // Обновляем флаг при изменении чекбокса
+    document.getElementById('subtitle-toggle').addEventListener('change', function() {
+      subtitlesEnabled = this.checked;
+    });
+
+    function formatTime(sec) {
+      const mins = Math.floor(sec / 60);
+      const secs = sec % 60;
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function startTimer() {
+      seconds = 0;
+      document.getElementById('timer').textContent = `Время: ${formatTime(seconds)}`;
+      timerInterval = setInterval(() => {
+        seconds++;
+        document.getElementById('timer').textContent = `Время: ${formatTime(seconds)}`;
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+    }
+
+    function toggleCustom() {
+      const form = document.getElementById('custom-form');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function startGame(cols, rows) {
+      if (cols * rows % 2 !== 0) {
+        alert('Количество клеток должно быть чётным (чтобы все символы имели пару)!');
+        return;
+      }
+      
+      gridSize = { cols, rows };
+      resetGame();
+    }
+
+    function startCustomGame() {
+      const width = parseInt(document.getElementById('width').value);
+      const height = parseInt(document.getElementById('height').value);
+
+      if (isNaN(width) || isNaN(height)) {
+        alert('Введите корректные числа!');
+        return;
+      }
+
+      if (width < 2 || width > 10 || height < 2 || height > 16) {
+        alert('Ширина должна быть от 2 до 10, высота — от 2 до 16.');
+        return;
+      }
+
+      if (width * height % 2 !== 0) {
+        alert('Общее число клеток должно быть чётным!');
+        return;
+      }
+
+      gridSize = { cols: width, rows: height };
+      resetGame();
+      toggleCustom();
+    }
+
+    function resetGame() {
+      stopTimer();
+      startTimer();
+
+      const grid = document.getElementById('grid');
+      grid.style.setProperty('--cols', gridSize.cols);
+      grid.style.setProperty('--rows', gridSize.rows);
+      grid.innerHTML = '';
+
+      // Подготовка символов
+      const pairsNeeded = (gridSize.cols * gridSize.rows) / 2;
+      const selectedSymbols = [...symbols]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, pairsNeeded);
+      
+      cards = [...selectedSymbols, ...selectedSymbols].sort(() => Math.random() - 0.5);
+
+      flipped = [];
+      matches = 0;
+      attempts = 0;
+      totalPairs = pairsNeeded;
+
+      document.getElementById('score').innerHTML = `Пар найдено: 0 / <span id="total-pairs">${totalPairs}</span>`;
+      document.getElementById('attempts').textContent = '0';
+      document.getElementById('accuracy').textContent = '0%';
+      document.getElementById('subtitle').textContent = ''; // Очищаем субтитры
+
+      // Создание карточек
+      cards.forEach((symbol, idx) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.setAttribute('data-idx', idx);
+        card.setAttribute('data-symbol', symbol);
+        card.textContent = '?';
+        card.addEventListener('click', flipCard);
+        grid.appendChild(card);
+      });
+    }
+
+    function flipCard(e) {
+      const idx = e.target.getAttribute('data-idx');
+
+      // Проверка: уже перевернута или в процессе проверки
+      if (flipped.includes(idx) || flipped.length >= 2) return;
+
+      const card = e.target;
+      const symbol = card.getAttribute('data-symbol');
+      card.textContent = symbol;
+      card.classList.add('flipped');
+      flipped.push(idx);
+
+      // Если включены субтитры — озвучиваем открытую карточку
+      if (subtitlesEnabled) {
+        document.getElementById('subtitle').textContent = `Открыта карточка: ${symbol}`;
+      }
+
+      if (flipped.length === 2) {
+        attempts++;
+        document.getElementById('attempts').textContent = attempts;
+        
+        // Обновление точности
+        const accuracy = Math.round((matches / attempts) * 100) || 0;
+        document.getElementById('accuracy').textContent = `${accuracy}%`;
+
+        setTimeout(checkMatch, 800);
+      }
+    }
+
+    function checkMatch() {
+      const [a, b] = flipped;
+      const cardsEl = document.querySelectorAll('.card');
+
+      if (cards[a] === cards[b]) {
+        matches++;
+        document.getElementById('score').innerHTML = `Пар найдено: ${matches} / <span id="total-pairs">${totalPairs}</span>`;
+
+        // Блокировка и визуальное подтверждение
+        cardsEl[a].classList.add('matched');
+        cardsEl[b].classList.add('matched');
+
+        if (matches === totalPairs) {
+          stopTimer();
+          setTimeout(() => {
+            alert(`Победа! Все ${totalPairs} пары найдены за ${formatTime(seconds)}!`);
+          }, 500);
+        }
+      } else {
+        // Возврат к закрытому состоянию
+        cardsEl[a].textContent = '?';
+        cardsEl[b].textContent = '?';
+        cardsEl[a].classList.remove('flipped');
+        cardsEl[b].classList.remove('flipped');
+        cardsEl[a].classList.add('mismatched');
+        cardsEl[b].classList.add('mismatched');
+
+        setTimeout(() => {
+          cardsEl[a].classList.remove('mismatched');
+          cardsEl[b].classList.remove('mismatched');
+        }, 800);
+      }
+
+      flipped = [];
+
+      // Очищаем субтитры после проверки пары
+      if (subtitlesEnabled) {
+        document.getElementById('subtitle').textContent = '';
+      }
+    }
+
+    // Запуск при загрузке
+    window.onload = function() {
+      startGame(4, 4); // Старт с лёгким уровнем
+    };
+  </script>
+</body>
+</html>
+
+    
+    
