@@ -3,179 +3,193 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Змейка</title>
+  <title>Змейка | Galaxy Arcade</title>
   <style>
+    :root {
+      --primary: #00f2fe;
+      --secondary: #4facfe;
+      --accent: #f093fb;
+      --snake-head: #00f2fe;
+      --snake-body: rgba(0, 242, 254, 0.6);
+      --food: #ff5722;
+      --bg: #0b0b1a;
+      --glass: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --smooth: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background: #263238;
+      font-family: 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      background-image: radial-gradient(circle at 50% 50%, #1b2735 0%, #090a0f 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
       color: white;
-      margin: 0;
-      padding: 10px;
+      overflow: hidden;
       touch-action: none;
     }
+
     .container {
-      max-width: 90%;
-      margin: 0 auto;
-      padding: 15px;
-      background: #37474f;
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      overflow: hidden;
+      background: var(--glass);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-radius: 30px;
+      padding: 20px;
+      text-align: center;
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+      width: 95%;
+      max-width: 400px;
+      animation: fadeIn 0.8s var(--smooth);
     }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
     h1 {
-      margin-bottom: 15px;
-      color: #4caf50;
       font-size: 1.8rem;
+      margin-bottom: 10px;
+      background: linear-gradient(45deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
     }
+
+    #score {
+      font-size: 1.4rem;
+      margin-bottom: 15px;
+      color: #ffeb3b;
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(255, 235, 59, 0.4);
+    }
+
     #game-area {
       width: 100%;
       height: 0;
-      padding-top: 100%;
+      padding-top: 100%; /* Квадрат */
       position: relative;
-      border: 3px solid #546e7a;
-      margin: 15px auto;
-      background: #1b262c;
+      background: rgba(0, 0, 0, 0.4);
+      border: 2px solid var(--glass-border);
+      border-radius: 15px;
+      margin: 0 auto 20px;
       overflow: hidden;
-      touch-action: none;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
     }
+
+    /* СТИЛЬ ЗМЕЙКИ */
     .snake-part {
       position: absolute;
       width: 5vw;
       height: 5vw;
       max-width: 20px;
       max-height: 20px;
-      background: #4caf50;
-      border-radius: 50%;
-      transition: left 0.1s, top 0.1s;
+      background: var(--snake-body);
+      border-radius: 6px;
+      box-shadow: 0 0 10px var(--primary);
+      transition: all 0.1s linear;
     }
+
     .food {
       position: absolute;
       width: 5vw;
       height: 5vw;
       max-width: 20px;
       max-height: 20px;
-      background: #ff5722;
+      background: var(--food);
       border-radius: 50%;
-    }
-    #score {
-      font-size: 1.6rem;
-      margin: 12px 0;
-      color: #ffeb3b;
-    }
-    button {
-      padding: 12px 24px;
-      background: #009688;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 1rem;
-      margin: 5px;
-      touch-action: manipulation;
-    }
-    button:hover {
-      background: #00796b;
-    }
-    a {
-      display: inline-block;
-      margin-top: 15px;
-      color: #009688;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 1.1rem;
+      box-shadow: 0 0 15px var(--food);
+      animation: pulse Food 1s infinite;
     }
 
-    /* Стили для мобильных кнопок управления */
+    @keyframes pulseFood {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.8; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* УПРАВЛЕНИЕ */
     .controls-container {
-      display: none;
-      width: 100%;
-      max-width: 400px;
-      margin: 15px auto 0;
-      padding: 10px;
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 12px;
-    }
-
-    .control-row {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      margin-bottom: 10px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-width: 220px;
+      margin: 0 auto 15px;
     }
 
     .control-btn {
+      width: 60px;
+      height: 60px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 50%;
+      color: white;
+      font-size: 1.5rem;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      width: 70px;
-      height: 70px;
-      background: #009688;
-      color: white;
-      border: none;
-      border-radius: 50%;
       cursor: pointer;
-      transition: all 0.2s ease;
-      font-family: inherit;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      font-size: 1rem;
-    }
-
-    .control-btn:hover {
-      background: #00796b;
-      transform: translateY(-2px);
+      transition: all 0.2s var(--smooth);
     }
 
     .control-btn:active {
-      background: #00564d;
-      transform: translateY(0);
+      background: var(--primary);
+      color: #000;
+      transform: scale(0.9);
     }
 
-    .arrow {
-      font-size: 1.8rem;
-      line-height: 1;
-      margin-bottom: 4px;
+    .btn-up { grid-column: 2; }
+    .btn-left { grid-column: 1; }
+    .btn-down { grid-column: 2; }
+    .btn-right { grid-column: 3; }
+
+    button.main-btn {
+      padding: 12px 24px;
+      background: linear-gradient(45deg, var(--secondary), var(--primary));
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+      margin-bottom: 10px;
+      transition: 0.3s;
     }
 
-    .label {
-      font-size: 0.8rem;
-      opacity: 0.9;
+    button.main-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 242, 254, 0.4); }
+
+    .back-link {
+      display: block;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: bold;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Змейка-пк</h1>
+    <h1>Змейка</h1>
     <div id="score">Счёт: 0</div>
     <div id="game-area"></div>
 
-    <!-- Мобильные кнопки управления -->
-    <div id="mobile-controls" class="controls-container">
-      <div class="control-row">
-        <button class="control-btn" data-dir="up">
-          <span class="arrow">↑</span>
-          <span class="label">Вверх</span>
-        </button>
-      </div>
-      <div class="control-row">
-        <button class="control-btn" data-dir="left">
-          <span class="arrow">←</span>
-          <span class="label">Влево</span>
-        </button>
-        <button class="control-btn" data-dir="down">
-          <span class="arrow">↓</span>
-          <span class="label">Вниз</span>
-        </button>
-        <button class="control-btn" data-dir="right">
-          <span class="arrow">→</span>
-          <span class="label">Вправо</span>
-        </button>
-      </div>
+    <div class="controls-container">
+      <button class="control-btn btn-up" onclick="setDir('up')">↑</button>
+      <button class="control-btn btn-left" onclick="setDir('left')">←</button>
+      <button class="control-btn btn-down" onclick="setDir('down')">↓</button>
+      <button class="control-btn btn-right" onclick="setDir('right')">→</button>
     </div>
 
-    <button onclick="resetGame()">Начать заново</button>
-    <a href="index.html">← В меню</a>
+    <button class="main-btn" onclick="resetGame()">НАЧАТЬ ЗАНОВО</button>
+    <a href="index.html" class="back-link">← В МЕНЮ</a>
   </div>
 
   <script>
@@ -183,82 +197,64 @@
     const scoreDisplay = document.getElementById('score');
     let snake = [{ x: 10, y: 10 }];
     let food = { x: 15, y: 15 };
-    let dx = 0, dy = 1;
+    let dx = 0, dy = -1;
     let score = 0;
     let gameLoop;
     let isGameOver = false;
-    let lastTouch = null;
 
     const GRID_SIZE = 20;
 
-    // Адаптивный расчёт размера клетки
     function getCellSize() {
-      return Math.min(gameArea.clientWidth, gameArea.clientHeight) / GRID_SIZE;
+      return gameArea.clientWidth / GRID_SIZE;
     }
 
-    // Создание элемента
-    function createElement(className, x, y) {
+    function createElement(className, x, y, isHead = false) {
       const element = document.createElement('div');
       element.className = className;
       const cellSize = getCellSize();
       element.style.left = x * cellSize + 'px';
       element.style.top = y * cellSize + 'px';
+      if (isHead) {
+        element.style.background = 'var(--primary)';
+        element.style.zIndex = '2';
+      }
       gameArea.appendChild(element);
       return element;
     }
 
-    // Отрисовка змеи
     function drawSnake() {
       snake.forEach((part, index) => {
-        const snakePart = createElement('snake-part', part.x, part.y);
-        if (index === 0) {
-          snakePart.style.background = '#2e7d32';
-        }
+        createElement('snake-part', part.x, part.y, index === 0);
       });
     }
 
-    // Генерация еды
     function generateFood() {
       food.x = Math.floor(Math.random() * GRID_SIZE);
       food.y = Math.floor(Math.random() * GRID_SIZE);
-
       for (let part of snake) {
         if (part.x === food.x && part.y === food.y) {
           generateFood();
           return;
         }
       }
-
-      createElement('food', food.x, food.y);
     }
 
-    // Проверка столкновений
-        function checkCollision() {
-      const head = snake[0];
-
-      // Столкновение со стеной
-      if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
-        return true;
-      }
-
-      // Столкновение с телом
-      for (let i = 1; i < snake.length; i++) {
-        if (head.x === snake[i].x && head.y === snake[i].y) {
-          return true;
-        }
-      }
-
-      return false;
-    }
-
-    // Обновление игры
     function gameUpdate() {
       if (isGameOver) return;
 
       const newHead = { x: snake[0].x + dx, y: snake[0].y + dy };
+
+      // Столкновения
+      if (newHead.x < 0 || newHead.x >= GRID_SIZE || newHead.y < 0 || newHead.y >= GRID_SIZE || 
+          snake.some(part => part.x === newHead.x && part.y === newHead.y)) {
+        isGameOver = true;
+        clearInterval(gameLoop);
+        alert(`ИГРА ОКОНЧЕНА!\nВаш счёт: ${score}`);
+        return;
+      }
+
       snake.unshift(newHead);
 
-      // Съели еду?
       if (newHead.x === food.x && newHead.y === food.y) {
         score += 10;
         scoreDisplay.textContent = `Счёт: ${score}`;
@@ -267,146 +263,40 @@
         snake.pop();
       }
 
-      if (checkCollision()) {
-        isGameOver = true;
-        clearInterval(gameLoop);
-        alert(`Игра окончена! Ваш счёт: ${score}`);
-        return;
-      }
-
       gameArea.innerHTML = '';
       drawSnake();
       createElement('food', food.x, food.y);
     }
 
-    // Сброс игры
+    function setDir(dir) {
+      if (dir === 'up' && dy !== 1) { dx = 0; dy = -1; }
+      if (dir === 'down' && dy !== -1) { dx = 0; dy = 1; }
+      if (dir === 'left' && dx !== 1) { dx = -1; dy = 0; }
+      if (dir === 'right' && dx !== -1) { dx = 1; dy = 0; }
+    }
+
     function resetGame() {
       isGameOver = false;
       snake = [{ x: 10, y: 10 }];
-      dx = 0; dy = 1;
+      dx = 0; dy = -1;
       score = 0;
       scoreDisplay.textContent = 'Счёт: 0';
-
       gameArea.innerHTML = '';
       generateFood();
-      drawSnake();
-
       clearInterval(gameLoop);
-      gameLoop = setInterval(gameUpdate, 200);
+      gameLoop = setInterval(gameUpdate, 250);
     }
 
-    // Обработка клавиатуры
-    function handleKeyPress(e) {
-      switch (e.key) {
-        case 'ArrowUp':
-          if (dy !== 1) { dx = 0; dy = -1; }
-          break;
-        case 'ArrowDown':
-          if (dy !== -1) { dx = 0; dy = 1; }
-          break;
-        case 'ArrowLeft':
-          if (dx !== 1) { dx = -1; dy = 0; }
-          break;
-        case 'ArrowRight':
-          if (dx !== -1) { dx = 1; dy = 0; }
-          break;
-      }
-    }
-
-    // Обработка тач-событий
-    function handleTouchStart(e) {
-      const touch = e.touches[0];
-      lastTouch = { x: touch.clientX, y: touch.clientY };
-    }
-
-    function handleTouchMove(e) {
-      if (!lastTouch) return;
-
-      const touch = e.touches[0];
-      const dx = touch.clientX - lastTouch.x;
-      const dy = touch.clientY - lastTouch.y;
-
-      // Определяем направление свайпа
-      if (Math.abs(dx) > Math.abs(dy)) {
-        // Горизонтальный свайп
-        if (dx > 30) {  // вправо
-          if (dx !== -1) { dx = 1; dy = 0; }
-        } else if (dx < -30) {  // влево
-          if (dx !== 1) { dx = -1; dy = 0; }
-        }
-      } else {
-        // Вертикальный свайп
-        if (dy > 30) {  // вниз
-          if (dy !== -1) { dx = 0; dy = 1; }
-        } else if (dy < -30) {  // вверх
-          if (dy !== 1) { dx = 0; dy = -1; }
-        }
-      }
-
-      lastTouch = null; // Сброс после обработки
-    }
-
-    // Предотвращение стандартного поведения браузера
-    function preventDefault(e) {
-      e.preventDefault();
-    }
-
-    // Функция для обновления видимости мобильных кнопок
-    function updateControlsVisibility() {
-      const mobileControls = document.getElementById('mobile-controls');
-      if (window.innerWidth < 768) {
-        mobileControls.style.display = 'block';
-      } else {
-        mobileControls.style.display = 'none';
-      }
-    }
-
-    // Обработчик нажатия кнопок управления
-    function handleControlButton(direction) {
-      switch (direction) {
-        case 'up':
-          if (dy !== 1) { dx = 0; dy = -1; }
-          break;
-        case 'down':
-          if (dy !== -1) { dx = 0; dy = 1; }
-          break;
-        case 'left':
-          if (dx !== 1) { dx = -1; dy = 0; }
-          break;
-        case 'right':
-          if (dx !== -1) { dx = 1; dy = 0; }
-          break;
-      }
-    }
-
-    // Привязываем обработчики к кнопкам
-    document.querySelectorAll('.control-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        handleControlButton(btn.dataset.dir);
-      });
+    // Клавиатура
+    window.addEventListener('keydown', e => {
+      if (e.key === 'ArrowUp') setDir('up');
+      if (e.key === 'ArrowDown') setDir('down');
+      if (e.key === 'ArrowLeft') setDir('left');
+      if (e.key === 'ArrowRight') setDir('right');
     });
 
-    // Инициализация
-    window.addEventListener('keydown', handleKeyPress);
-    gameArea.addEventListener('touchstart', handleTouchStart, { passive: false });
-    gameArea.addEventListener('touchmove', handleTouchMove, { passive: false });
-    gameArea.addEventListener('touchmove', preventDefault, { passive: false });
-
-    // Вызываем при загрузке и при изменении размера окна
-    updateControlsVisibility();
-    window.addEventListener('resize', updateControlsVisibility);
-
-    // Запуск игры
+    // Авто-запуск
     resetGame();
-
-    // Адаптация при изменении размера окна
-    window.addEventListener('resize', () => {
-      if (!isGameOver) {
-        gameArea.innerHTML = '';
-        drawSnake();
-        createElement('food', food.x, food.y);
-      }
-    });
   </script>
 </body>
 </html>

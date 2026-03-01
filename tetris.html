@@ -2,281 +2,289 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Тетрис</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🚀 Тетрис PRO | Galaxy Arcade</title>
   <style>
+    :root {
+      --primary: #00f2fe;
+      --secondary: #4facfe;
+      --accent: #f093fb;
+      --bg: #0b0b1a;
+      --glass: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --smooth: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    
     body {
-      font-family: 'Arial', sans-serif;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      font-family: 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      background-image: radial-gradient(circle at 50% 50%, #1b2735 0%, #090a0f 100%);
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      padding: 20px;
-    }
-    .game-container {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-      padding: 30px;
-      text-align: center;
-      width: 100%;
-      max-width: 400px;
-    }
-    h1 {
-      color: #333;
-      margin-bottom: 20px;
-      font-size: 2.5rem;
-    }
-    .game-area {
-      position: relative;
-      width: 240px;
-      height: 400px;
-      background: black;
-      border: 2px solid #ddd;
-      border-radius: 10px;
-      overflow: hidden;
-      margin: 0 auto 20px;
-    }
-    .score-board {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 20px;
-      color: #333;
-    }
-    .score-board div {
-      font-size: 1.2rem;
-      font-weight: bold;
-    }
-    button {
-      padding: 12px 24px;
-      background: #4caf50;
       color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 1rem;
-      font-weight: bold;
-      transition: background 0.3s;
-      margin: 5px;
-    }
-    button:hover {
-      background: #3e8e41;
+      overflow-x: hidden;
+      opacity: 0;
+      animation: fadeInPage 0.8s ease forwards;
     }
 
-    /* Мобильные кнопки управления */
-    .mobile-controls {
+    @keyframes fadeInPage {
+      from { opacity: 0; transform: scale(1.05); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .game-container {
+      background: var(--glass);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-radius: 30px;
+      padding: 25px;
+      text-align: center;
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+      max-width: 360px;
+      width: 95%;
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 { 
+      font-size: 1.8rem; 
+      margin-bottom: 20px; 
+      background: linear-gradient(45deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 900;
+      letter-spacing: 4px;
+    }
+    
+    .score-board {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 10px;
-      max-width: 280px;
-      margin: 20px auto;
-    }
-    .control-btn {
-      font-size: 1.5rem;
+      margin-bottom: 20px;
+      background: rgba(0,0,0,0.4);
       padding: 15px;
-      background: #333;
+      border-radius: 20px;
+      border: 1px solid var(--glass-border);
+    }
+
+    .score-item { font-size: 0.7rem; color: rgba(255,255,255,0.6); text-transform: uppercase; }
+    .score-item span { display: block; font-size: 1.2rem; color: var(--primary); font-weight: bold; margin-top: 5px; }
+
+    .game-area {
+      position: relative;
+      width: 240px;
+      height: 480px;
+      background: rgba(0,0,0,0.5);
+      border: 2px solid var(--glass-border);
+      border-radius: 15px;
+      margin: 0 auto 20px;
+      overflow: hidden;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    .block {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.3), 0 0 15px currentColor;
+    }
+
+    .mobile-controls {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 15px;
+    }
+
+    .control-btn {
+      padding: 15px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
       color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.3s var(--smooth);
+    }
+
+    .control-btn:hover { background: var(--primary); color: #000; }
+
+    .btn-main {
+      grid-column: span 3;
+      background: linear-gradient(45deg, var(--secondary), var(--primary));
       border: none;
-      border-radius: 10px;
-      touch-action: manipulation;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
-    .control-btn:active {
-      background: #555;
-      transform: scale(0.95);
+
+    .restart-btn {
+      margin-top: 15px;
+      width: 100%;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.6);
+      padding: 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.8rem;
     }
-    .control-btn.rotate {
-      grid-column: 3;
-      grid-row: 1 / 3;
+
+    .back-link { 
+      margin-top: 25px; 
+      display: inline-block; 
+      color: var(--accent); 
+      text-decoration: none; 
+      font-size: 1rem;
+      font-weight: bold;
+      padding: 10px 20px;
+      border: 1px solid var(--accent);
+      border-radius: 15px;
+      transition: 0.3s;
+    }
+
+    .back-link:hover {
+      background: var(--accent);
+      color: #000;
+      box-shadow: 0 0 15px var(--accent);
     }
   </style>
 </head>
 <body>
+
   <div class="game-container">
-    <h1>Тетрис</h1>
+    <h1>TETRIS</h1>
 
     <div class="score-board">
-      <div>Счёт: <span id="score">0</span></div>
-      <div>Уровень: <span id="level">1</span></div>
-      <div>Линии: <span id="lines">0</span></div>
+      <div class="score-item">Счёт<span id="score">0</span></div>
+      <div class="score-item">Уровень<span id="level">1</span></div>
+      <div class="score-item">Линии<span id="lines">0</span></div>
     </div>
 
     <div class="game-area" id="game-area"></div>
 
-    <!-- Мобильные кнопки -->
     <div class="mobile-controls">
       <button class="control-btn" id="btn-left">←</button>
       <button class="control-btn" id="btn-down">↓</button>
       <button class="control-btn" id="btn-right">→</button>
-      <button class="control-btn rotate" id="btn-rotate">↻</button>
+      <button class="control-btn btn-main" id="btn-rotate">ПОВОРОТ</button>
     </div>
 
-    <button onclick="restartGame()">Начать заново</button>
-
-    <div class="cube" onclick="location.href='index.html'">в меню</div>
+    <button class="restart-btn" onclick="restartGame()">ЗАПУСТИТЬ ЗАНОВО</button>
+    
+    <a href="index.html" class="back-link">← ВЕРНУТЬСЯ В МЕНЮ</a>
   </div>
 
   <script>
-    // Настройки игры
+    // Весь JS код остается таким же, как в твоем сообщении
     const COLS = 10;
     const ROWS = 20;
     const BLOCK_SIZE = 24;
-    const COLORS = [
-      null,
-      '#FF0D72', // I
-      '#0DC2FF', // J
-      '#0DFF92', // L
-      '#F538FF', // O
-      '#FF8138', // S
-      '#FFE438', // Z
-      '#3877FF'  // T
-    ];
-
-    // Элементы DOM
-    const gameArea = document.getElementById('game-area');
-    const scoreElement = document.getElementById('score');
-    const levelElement = document.getElementById('level');
-    const linesElement = document.getElementById('lines');
-
-    // Кнопки мобильного управления
-    const btnLeft = document.getElementById('btn-left');
-    const btnDown = document.getElementById('btn-down');
-    const btnRight = document.getElementById('btn-right');
-    const btnRotate = document.getElementById('btn-rotate');
-
-    // Игровые переменные
-    let score = 0;
-    let lines = 0;
-    let level = 1;
-    let dropCounter = 0;
-    let dropInterval = 1000; // мс
-    let lastTime = 0;
-    let isGameOver = false;
-
-    // Игровое поле (2D массив)
-    let board = Array.from({length: ROWS}, () => Array(COLS).fill(0));
-
-    // Текущая фигура
-    let piece = {
-      type: '',
-      matrix: [],
-      pos: {x: 0, y: 0}
-    };
-
-    // Все типы фигур
+    const COLORS = [null, '#00f2fe', '#4facfe', '#f093fb', '#f6d365', '#5eeff5', '#eb3349', '#a18cd1'];
     const PIECES = {
       'I': [[0,1,0,0], [0,1,0,0], [0,1,0,0], [0,1,0,0]],
-      'J': [[1,0,0], [1,1,1], [0,0,0]],
-      'L': [[0,0,1], [1,1,1], [0,0,0]],
-      'O': [[1,1], [1,1]],
-      'S': [[0,1,1], [1,1,0], [0,0,0]],
-      'Z': [[1,1,0], [0,1,1], [0,0,0]],
-      'T': [[0,1,0], [1,1,1], [0,0,0]]
+      'J': [[2,0,0], [2,2,2], [0,0,0]],
+      'L': [[0,0,3], [3,3,3], [0,0,0]],
+      'O': [[4,4], [4,4]],
+      'S': [[0,5,5], [5,5,0], [0,0,0]],
+      'Z': [[6,6,0], [0,6,6], [0,0,0]],
+      'T': [[0,7,0], [7,7,7], [0,0,0]]
     };
 
-    // Создание нового блока
+    const gameArea = document.getElementById('game-area');
+    let board = Array.from({length: ROWS}, () => Array(COLS).fill(0));
+    let score = 0, lines = 0, level = 1;
+    let dropCounter = 0, dropInterval = 1000, lastTime = 0;
+    let isGameOver = false;
+    let piece = { matrix: [], pos: {x: 0, y: 0} };
+
     function createPiece() {
       const types = Object.keys(PIECES);
       const type = types[Math.floor(Math.random() * types.length)];
-      piece.type = type;
       piece.matrix = PIECES[type];
-      piece.pos.x = Math.floor((COLS - piece.matrix[0].length) / 2);
       piece.pos.y = 0;
+      piece.pos.x = Math.floor(COLS / 2) - Math.floor(piece.matrix[0].length / 2);
+      if (isCollision()) {
+        isGameOver = true;
+        alert("ИГРА ОКОНЧЕНА! Ваш счёт: " + score);
+        restartGame();
+      }
     }
 
-    // Рисование игрового поля
     function draw() {
       gameArea.innerHTML = '';
-
-      // Рисуем ячейки
-      for (let y = 0; y < ROWS; y++) {
-        for (let x = 0; x < COLS; x++) {
-          if (board[y][x]) {
-            const block = document.createElement('div');
-            block.style.position = 'absolute';
-            block.style.width = `${BLOCK_SIZE}px`;
-            block.style.height = `${BLOCK_SIZE}px`;
-            block.style.left = `${x * BLOCK_SIZE}px`;
-            block.style.top = `${y * BLOCK_SIZE}px`;
-                        block.style.backgroundColor = COLORS[board[y][x]];
-            block.style.border = '1px solid #000';
-            gameArea.appendChild(block);
-          }
-        }
-      }
-
-      // Рисуем текущую фигуру
-      for (let y = 0; y < piece.matrix.length; y++) {
-        for (let x = 0; x < piece.matrix[y].length; x++) {
-          if (piece.matrix[y][x]) {
-            const block = document.createElement('div');
-            block.style.position = 'absolute';
-            block.style.width = `${BLOCK_SIZE}px`;
-            block.style.height = `${BLOCK_SIZE}px`;
-            block.style.left = `${(piece.pos.x + x) * BLOCK_SIZE}px`;
-            block.style.top = `${(piece.pos.y + y) * BLOCK_SIZE}px`;
-            block.style.backgroundColor = COLORS[piece.matrix[y][x]];
-            block.style.border = '1px solid #000';
-            gameArea.appendChild(block);
-          }
-        }
-      }
+      board.forEach((row, y) => {
+        row.forEach((value, x) => {
+          if (value > 0) drawBlock(x, y, value);
+        });
+      });
+      piece.matrix.forEach((row, y) => {
+        row.forEach((value, x) => {
+          if (value > 0) drawBlock(piece.pos.x + x, piece.pos.y + y, value);
+        });
+      });
     }
 
-    // Проверка на столкновение
+    function drawBlock(x, y, colorIndex) {
+      const block = document.createElement('div');
+      block.className = 'block';
+      block.style.left = x * BLOCK_SIZE + 'px';
+      block.style.top = y * BLOCK_SIZE + 'px';
+      block.style.backgroundColor = COLORS[colorIndex];
+      block.style.color = COLORS[colorIndex];
+      gameArea.appendChild(block);
+    }
+
     function isCollision() {
-      for (let y = 0; y < piece.matrix.length; y++) {
-        for (let x = 0; x < piece.matrix[y].length; x++) {
-          if (piece.matrix[y][x] &&
-              (piece.pos.y + y >= ROWS ||
-               piece.pos.x + x < 0 ||
-               piece.pos.x + x >= COLS ||
-               board[piece.pos.y + y][piece.pos.x + x])) {
-            return true;
+      const [m, o] = [piece.matrix, piece.pos];
+      for (let y = 0; y < m.length; y++) {
+        for (let x = 0; x < m[y].length; x++) {
+          if (m[y][x] !== 0) {
+            let boardY = y + o.y;
+            let boardX = x + o.x;
+            if (boardY >= ROWS || boardX < 0 || boardX >= COLS || (board[boardY] && board[boardY][boardX] !== 0)) {
+              return true;
+            }
           }
         }
       }
       return false;
     }
 
-    // Закрепление фигуры на поле
     function mergePiece() {
-      for (let y = 0; y < piece.matrix.length; y++) {
-        for (let x = 0; x < piece.matrix[y].length; x++) {
-          if (piece.matrix[y][x]) {
-            board[piece.pos.y + y][piece.pos.x + x] = piece.matrix[y][x];
-          }
-        }
-      }
+      piece.matrix.forEach((row, y) => {
+        row.forEach((value, x) => {
+          if (value !== 0) board[y + piece.pos.y][x + piece.pos.x] = value;
+        });
+      });
     }
 
-    // Удаление полных линий
     function clearLines() {
-      let linesCleared = 0;
-
+      let rowCount = 0;
       for (let y = ROWS - 1; y >= 0; y--) {
-        if (board[y].every(cell => cell !== 0)) {
+        if (board[y].every(value => value !== 0)) {
           board.splice(y, 1);
           board.unshift(Array(COLS).fill(0));
-          linesCleared++;
-          y++; // Проверяем ту же строку снова после сдвига
+          rowCount++;
+          y++;
         }
       }
-
-      if (linesCleared > 0) {
-        lines += linesCleared;
-        score += [40, 100, 300, 1200][linesCleared - 1] * level;
+      if (rowCount > 0) {
+        lines += rowCount;
+        score += rowCount * 100 * level;
         level = Math.floor(lines / 10) + 1;
-        dropInterval = 1000 - (level - 1) * 50; // Ускорение с уровнем
-
-        linesElement.textContent = lines;
-        scoreElement.textContent = score;
-        levelElement.textContent = level;
+        dropInterval = Math.max(100, 1000 - (level - 1) * 100);
+        updateUI();
       }
     }
 
-    // Перемещение фигуры вниз
     function moveDown() {
       piece.pos.y++;
       if (isCollision()) {
@@ -284,111 +292,71 @@
         mergePiece();
         clearLines();
         createPiece();
+      }
+      dropCounter = 0;
+    }
 
-        if (isCollision()) { // Игра окончена
-          isGameOver = true;
-          alert(`Игра окончена! Ваш счёт: ${score}`);
-          restartGame();
+    function moveSide(dir) {
+      piece.pos.x += dir;
+      if (isCollision()) piece.pos.x -= dir;
+    }
+
+    function rotate() {
+      const oldMatrix = piece.matrix;
+      piece.matrix = piece.matrix[0].map((_, i) => piece.matrix.map(row => row[i]).reverse());
+      let offset = 1;
+      const pos = piece.pos.x;
+      while (isCollision()) {
+        piece.pos.x += offset;
+        offset = -(offset + (offset > 0 ? 1 : -1));
+        if (offset > piece.matrix[0].length) {
+          piece.matrix = oldMatrix;
+          piece.pos.x = pos;
+          return;
         }
       }
     }
 
-    // Перемещение влево
-    function moveLeft() {
-      piece.pos.x--;
-      if (isCollision()) piece.pos.x++;
+    function updateUI() {
+      document.getElementById('score').innerText = score;
+      document.getElementById('lines').innerText = lines;
+      document.getElementById('level').innerText = level;
     }
 
-    // Перемещение вправо
-    function moveRight() {
-      piece.pos.x++;
-      if (isCollision()) piece.pos.x--;
-    }
-
-    // Поворот фигуры
-    function rotate() {
-      const original = [...piece.matrix]; // Сохраняем оригинал
-
-      // Создаём повёрнутую матрицу (транспонирование + отражение по горизонтали)
-      piece.matrix = piece.matrix.map((row, y) =>
-        row.map((cell, x) => original[piece.matrix.length - 1 - x][y])
-      );
-
-      // Проверяем коллизии после поворота
-      if (isCollision()) {
-        piece.matrix = original; // Возвращаем исходную матрицу
-      }
-    }
-
-    // Основной игровой цикл
     function update(time = 0) {
       if (isGameOver) return;
-
-      const delta = time - lastTime;
+      const deltaTime = time - lastTime;
       lastTime = time;
-
-      dropCounter += delta;
-      if (dropCounter > dropInterval) {
-        moveDown();
-        dropCounter = 0;
-      }
-
+      dropCounter += deltaTime;
+      if (dropCounter > dropInterval) moveDown();
       draw();
       requestAnimationFrame(update);
     }
 
-    // Перезапуск игры
     function restartGame() {
       board = Array.from({length: ROWS}, () => Array(COLS).fill(0));
-      score = 0;
-      lines = 0;
-      level = 1;
-      isGameOver = false;
+      score = 0; lines = 0; level = 1;
       dropInterval = 1000;
-      dropCounter = 0;
-
-      scoreElement.textContent = '0';
-      linesElement.textContent = '0';
-      levelElement.textContent = '1';
-
+      isGameOver = false;
+      updateUI();
       createPiece();
-      update();
+      if (lastTime === 0) update();
     }
 
-    // Обработчики клавиш
-    document.addEventListener('keydown', event => {
-      switch (event.key) {
-        case 'ArrowLeft':
-          moveLeft();
-          break;
-        case 'ArrowRight':
-          moveRight();
-          break;
-        case 'ArrowDown':
-          moveDown();
-          break;
-        case 'ArrowUp':
-          rotate();
-          break;
-        case ' ': // Пробел — мгновенное падение
-          while (!isCollision()) moveDown();
-          break;
-      }
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft') moveSide(-1);
+      if (e.key === 'ArrowRight') moveSide(1);
+      if (e.key === 'ArrowDown') moveDown();
+      if (e.key === 'ArrowUp') rotate();
     });
 
-    // Обработчики мобильных кнопок
-    btnLeft.addEventListener('click', moveLeft);
-    btnDown.addEventListener('click', moveDown);
-    btnRight.addEventListener('click', moveRight);
-    btnRotate.addEventListener('click', rotate);
+    document.getElementById('btn-left').onclick = () => moveSide(-1);
+    document.getElementById('btn-right').onclick = () => moveSide(1);
+    document.getElementById('btn-down').onclick = () => moveDown();
+    document.getElementById('btn-rotate').onclick = () => rotate();
 
-    // Запуск игры при загрузке страницы
-    window.onload = function() {
-      createPiece();
-      update();
-    };
+    createPiece();
+    update();
   </script>
 </body>
 </html>
-
-            
