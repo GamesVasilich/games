@@ -1,285 +1,159 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🚀 Игровой Хаб | Galaxy Arcade</title>
-  <style>
-    :root {
-      --primary: #00f2fe;
-      --secondary: #4facfe;
-      --accent: #f093fb;
-      --bg: #0b0b1a;
-      --glass: rgba(255, 255, 255, 0.05);
-      --glass-border: rgba(255, 255, 255, 0.1);
-      --smooth: cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: var(--bg);
-      color: #fff;
-      min-height: 100vh;
-      overflow-x: hidden;
-      opacity: 0;
-      animation: fadeInPage 1s ease forwards;
-    }
-
-    @keyframes fadeInPage {
-      from { opacity: 0; transform: scale(0.98); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    .bg-animation {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      z-index: -1;
-      background: radial-gradient(circle at 50% 50%, #1b2735 0%, #090a0f 100%);
-    }
-
-    .stars {
-      position: absolute;
-      background: white;
-      border-radius: 50%;
-      opacity: var(--o);
-      animation: drift var(--d) linear infinite;
-    }
-
-    @keyframes drift {
-      from { transform: translateY(110vh); }
-      to { transform: translateY(-10vh); }
-    }
-
-    .container {
-      width: 95%;
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 40px;
-      animation: slideDown 0.8s var(--smooth);
-    }
-
-    @keyframes slideDown {
-      from { transform: translateY(-30px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    header h1 {
-      font-size: 3.5rem;
-      background: linear-gradient(45deg, var(--primary), var(--accent));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      font-weight: 900;
-      filter: drop-shadow(0 0 15px rgba(0, 242, 254, 0.3));
-      text-transform: uppercase;
-    }
-
-    header p {
-      opacity: 0.8;
-      letter-spacing: 1px;
-    }
-
-    .section-title {
-      font-size: 1.2rem;
-      margin: 40px 0 15px;
-      color: #FFD700;
-      text-shadow: 0 0 5px #FF8C00;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .section-title::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(90deg, rgba(255, 215, 0, 0.3), transparent);
-    }
-
-    .game-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 20px;
-    }
-
-    .game-card {
-      position: relative;
-      background: var(--glass);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      padding: 25px 15px;
-      text-decoration: none;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      transition: transform 0.5s var(--smooth), background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
-      will-change: transform;
-    }
-
-    .game-card:hover {
-      transform: translateY(-12px) scale(1.05);
-      background: rgba(255, 255, 255, 0.08);
-      border-color: var(--primary);
-      box-shadow: 0 15px 35px rgba(0, 242, 254, 0.2);
-    }
-
-    .icon-box {
-      width: 55px;
-      height: 55px;
-      background: rgba(0,0,0,0.3);
-      border-radius: 15px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 1.6rem;
-      margin-bottom: 15px;
-      transition: transform 0.6s var(--smooth);
-    }
-
-    .game-card:hover .icon-box {
-      transform: rotate(360deg);
-      background: var(--primary);
-      color: #0b0b1a;
-    }
-
-    .game-card h4 {
-      font-size: 1.15rem;
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-
-    .game-card span {
-      font-size: 0.75rem;
-      opacity: 0.5;
-    }
-
-    .top-badge {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: var(--accent);
-      color: #000;
-      padding: 2px 8px;
-      border-radius: 8px;
-      font-size: 0.6rem;
-      font-weight: 900;
-    }
-
-    footer {
-      margin-top: 60px;
-      padding: 30px;
-      text-align: center;
-    }
-
-    footer h8 {
-      opacity: 0.5;
-      font-size: 0.8rem;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3D Shooter Mobile</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: sans-serif; touch-action: none; }
+        #ui {
+            position: absolute; top: 10px; left: 10px; color: white;
+            text-shadow: 2px 2px 4px #000; pointer-events: none; z-index: 10;
+        }
+        #crosshair {
+            position: absolute; top: 50%; left: 50%;
+            width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.5);
+            border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none;
+        }
+        /* Зоны джойстиков */
+        #joystick-move { position: absolute; bottom: 50px; left: 50px; width: 120px; height: 120px; z-index: 20; }
+        #joystick-look { position: absolute; bottom: 50px; right: 50px; width: 120px; height: 120px; z-index: 20; }
+        
+        /* Кнопки действий */
+        .action-btns { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 20px; z-index: 30; }
+        .btn {
+            width: 60px; height: 60px; border-radius: 50%; border: none;
+            background: rgba(255, 255, 255, 0.3); color: white; font-weight: bold;
+            backdrop-filter: blur(5px);
+        }
+        #btn-shoot { background: rgba(233, 69, 96, 0.6); }
+    </style>
 </head>
 <body>
 
-  <div class="bg-animation" id="stars-container"></div>
+<div id="ui">
+    <div>HP: <span id="hp">100</span> | Team: Terror</div>
+    <div id="status">Ждем игроков...</div>
+</div>
 
-  <div class="container">
-    <header>
-      <h1>ИГРОВОЙ ХАБ</h1>
-      <p>Добро пожаловать в Galaxy Arcade</p>
-    </header>
+<div id="crosshair"></div>
 
-    <div class="section-title">Категория: 🎮 Простые игры</div>
-    <div class="game-grid">
-      <a href="tictactoe.html" class="game-card">
-        <div class="icon-box">❌</div>
-        <h4>Крестики-нолики</h4>
-        <span>Логическая битва</span>
-      </a>
-      <a href="match3.html" class="game-card">
-        <div class="icon-box">💎</div>
-        <h4>3 в ряд</h4>
-        <span>Супер комбо</span>
-      </a>
-      <a href="memory.html" class="game-card">
-        <div class="icon-box">🧠</div>
-        <h4>Память</h4>
-        <span>Найди пару</span>
-      </a>
-      <a href="quiz.html" class="game-card">
-        <div class="icon-box">❓</div>
-        <h4>Викторина</h4>
-        <span>Проверь знания</span>
-      </a>
-      <a href="snake.html" class="game-card">
-        <div class="icon-box">🐍</div>
-        <h4>Змейка</h4>
-        <span>Ретро стиль</span>
-      </a>
-      <a href="tetris.html" class="game-card">
-        <div class="icon-box">🧱</div>
-        <h4>Тетрис</h4>
-        <span>Уложи блоки</span>
-      </a>
-    </div>
+<div id="joystick-move"></div>
+<div id="joystick-look"></div>
 
-    <div class="section-title">Категория: 🕹️ 3D-игры</div>
-    <div class="game-grid">
-      <a href="3DGEIM.html" class="game-card">
-        <div class="icon-box">🧊</div>
-        <h4>3D Minecraft 1.0</h4>
-        <span>Мир блоков</span>
-      </a>
-      <a href="index.html" class="game-card">
-        <div class="icon-box">🎯</div>
-        <h4>3D cs2</h4>
-        <span>Экшен шутер</span>
-      </a>
-    </div>
+<div class="action-btns">
+    <button class="btn" id="btn-shoot">FIRE</button>
+    <button class="btn" id="btn-action">BOMB</button>
+</div>
 
-    <div class="section-title">⭐ Лучшие игры по версии игроков</div>
-    <div class="game-grid">
-      <a href="memory.html" class="game-card">
-        <div class="top-badge">ТОП 1</div>
-        <div class="icon-box">🏆</div>
-        <h4>Память</h4>
-        <span>Лидер рейтинга</span>
-      </a>
-      <a href="match3.html" class="game-card">
-        <div class="top-badge">ТОП 2</div>
-        <div class="icon-box">🥈</div>
-        <h4>3 в ряд</h4>
-        <span>Выбор игроков</span>
-      </a>
-    </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
+<script type="importmap">
+    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
 
-    <footer>
-      <h8>версия сайта "1.2"</h8>
-    </footer>
-  </div>
+<script type="module">
+    import * as THREE from 'three';
 
-  <script>
-    const container = document.getElementById('stars-container');
-    for (let i = 0; i < 60; i++) {
-      const star = document.createElement('div');
-      star.className = 'stars';
-      const size = Math.random() * 2 + 1;
-      star.style.width = `${size}px`;
-      star.style.height = `${size}px`;
-      star.style.left = `${Math.random() * 100}%`;
-      star.style.setProperty('--o', Math.random() * 0.7);
-      star.style.setProperty('--d', `${15 + Math.random() * 25}s`);
-      star.style.animationDelay = `${Math.random() * 15}s`;
-      container.appendChild(star);
+    let scene, camera, renderer, clock;
+    let moveDir = { x: 0, y: 0 };
+    let lookDir = { x: 0, y: 0 };
+    
+    init();
+    setupJoysticks();
+    animate();
+
+    function init() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x111111);
+        
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.y = 1.6;
+        camera.rotation.order = 'YXZ';
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
+        scene.add(light);
+
+        // Пол
+        const grid = new THREE.GridHelper(100, 50, 0xff0000, 0x444444);
+        scene.add(grid);
+
+        // Стрельба и действия
+        document.getElementById('btn-shoot').ontouchstart = (e) => { e.preventDefault(); shoot(); };
+        document.getElementById('btn-action').ontouchstart = (e) => { e.preventDefault(); console.log("Bomb action"); };
+
+        clock = new THREE.Clock();
     }
-  </script>
+
+    function setupJoysticks() {
+        // Джойстик ХОДЬБЫ (слева)
+        const moveJoy = nipplejs.create({
+            zone: document.getElementById('joystick-move'),
+            mode: 'static', position: { left: '60px', bottom: '60px' },
+            color: 'white'
+        });
+        moveJoy.on('move', (evt, data) => {
+            moveDir.x = data.vector.x;
+            moveDir.y = data.vector.y;
+        });
+        moveJoy.on('end', () => { moveDir = { x: 0, y: 0 }; });
+
+        // Джойстик КАМЕРЫ (справа)
+        const lookJoy = nipplejs.create({
+            zone: document.getElementById('joystick-look'),
+            mode: 'static', position: { right: '60px', bottom: '60px' },
+            color: 'red'
+        });
+        lookJoy.on('move', (evt, data) => {
+            lookDir.x = data.vector.x;
+            lookDir.y = data.vector.y;
+        });
+        lookJoy.on('end', () => { lookDir = { x: 0, y: 0 }; });
+    }
+
+    function shoot() {
+        // Логика выстрела
+        const flash = new THREE.PointLight(0xffaa00, 10, 5);
+        flash.position.set(camera.position.x, camera.position.y, camera.position.z);
+        scene.add(flash);
+        setTimeout(() => scene.remove(flash), 50);
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        const delta = clock.getDelta();
+
+        // Вращение камерой от правого джойстика
+        if (lookDir.x !== 0 || lookDir.y !== 0) {
+            camera.rotation.y -= lookDir.x * 0.05;
+            camera.rotation.x += lookDir.y * 0.05;
+            camera.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, camera.rotation.x));
+        }
+
+        // Движение от левого джойстика
+        if (moveDir.x !== 0 || moveDir.y !== 0) {
+            const speed = 4 * delta;
+            // Движение относительно взгляда камеры
+            const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+            const side = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+            forward.y = 0; side.y = 0; // Чтоб не взлетал
+
+            camera.position.add(forward.multiplyScalar(moveDir.y * speed));
+            camera.position.add(side.multiplyScalar(moveDir.x * speed));
+        }
+
+        renderer.render(scene, camera);
+    }
+
+    window.onresize = () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    };
+</script>
 </body>
 </html>

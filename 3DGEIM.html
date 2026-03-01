@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MC Mobile: Hardcore Edition FIXED</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: 'Arial', sans-serif; background: #000; touch-action: none; }
+        
+        /* СТИЛИ МЕНЮ */
+        #menu { position: fixed; inset: 0; background: #222; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        .slot-btn { width: 250px; padding: 15px; margin: 10px; background: #4d9a30; border: none; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; }
+        .slot-btn:active { background: #3d7a26; }
+        #btn-save { position: absolute; top: 10px; right: 10px; padding: 10px 15px; background: #e67e22; border: none; color: white; border-radius: 5px; z-index: 20; font-weight: bold; display: none; }
+
+        #landscape-msg { display: none; position: fixed; inset: 0; background: #111; color: white; z-index: 999; justify-content: center; align-items: center; text-align: center; }
+        @media (orientation: portrait) { #landscape-msg { display: flex; } }
+
+        #ui { position: absolute; top: 10px; left: 10px; color: white; text-shadow: 2px 2px #000; pointer-events: none; z-index: 5; font-size: 14px; }
+        #crosshair { position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; border: 2px solid white; transform: translate(-50%, -50%); pointer-events: none; }
+
+        #joy-zone { position: absolute; bottom: 30px; left: 30px; width: 120px; height: 120px; z-index: 10; opacity: 0.7; }
+        .controls-right { position: absolute; bottom: 20px; right: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; z-index: 10; }
+        .btn-act { width: 65px; height: 65px; background: rgba(255,255,255,0.1); border: 2px solid #fff; border-radius: 50%; color: white; font-weight: bold; }
+        #btn-jump { grid-column: span 2; height: 45px; border-radius: 20px; }
+
+        #hotbar { 
+            position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); 
+            display: flex; gap: 3px; background: rgba(0,0,0,0.8); padding: 5px; border-radius: 8px; z-index: 10;
+        }
+        .slot { min-width: 40px; height: 40px; border: 2px solid #444; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 9px; color: white; text-align: center; }
+        .selected { border-color: #00ff00; background: rgba(0,255,0,0.2); }
+    </style>
+</head>
+<body>
+
+<div id="menu">
+    <h1>MINECRAFT MOBILE</h1>
+    <button class="slot-btn" onclick="selectSlot(0)">МИР 1</button>
+    <button class="slot-btn" onclick="selectSlot(1)">МИР 2</button>
+    <button class="slot-btn" onclick="selectSlot(2)">МИР 3</button>
+    <button class="slot-btn" onclick="selectSlot(3)">МИР 4</button>
+</div>
+
+<div id="landscape-msg"><h1>ПЕРЕВЕРНИ ЭКРАН 🔄</h1></div>
+
+<button id="btn-save" onclick="saveWorld()">СОХРАНИТЬ</button>
+
+<div id="ui">
+    <div>Блоков: <span id="b-count">0</span> | <span id="coords">0,0,0</span></div>
+</div>
+
+<div id="crosshair"></div>
+<div id="joy-zone"></div>
+
+<div class="controls-right">
+    <button class="btn-act" id="btn-jump">JUMP</button>
+    <button class="btn-act" style="background: rgba(255,0,0,0.4)" id="btn-break">DIG</button>
+    <button class="btn-act" style="background: rgba(0,255,0,0.4)" id="btn-place">BUILD</button>
+</div>
+
+<div id="hotbar">
+    <div class="slot selected" onclick="setSlot(1)" style="background: #4d9a30">Трава</div>
+    <div class="slot" onclick="setSlot(2)" style="background: #777">Камень</div>
+    <div class="slot" onclick="setSlot(3)" style="background: #8b4513">Доски</div>
+    <div class="slot" onclick="setSlot(4)" style="background: #b22222">Кирпич</div>
+    <div class="slot" onclick="setSlot(5)" style="background: #add8e6; color: #000">Стекло</div>
+    <div class="slot" onclick="setSlot(6)" style="background: #228b22">Листва</div>
+    <div class="slot" onclick="setSlot(7)" style="background: #00ffff; color: #000">Алмаз</div>
+    <div class="slot" onclick="setSlot(8)" style="background: #444">Уголь</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
+<script type="importmap"> { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } } </script>
+
+<script type="module">
+    import * as THREE from 'three';
+
+    let scene, camera, renderer, clock;
+    let moveDir = { x: 0, y: 0 };
+    let velocity = new THREE.Vector3(0,0,0);
+    let canJump = false;
+    let selectedBlock = 1;
+    let currentSlot = 0;
+    const blocks = [];
+    const playerRadius = 0.3;
+
+    // Функция выбора слота и запуска
+    window.selectSlot = (slot) => {
+        currentSlot = slot;
+        document.getElementById('menu').style.display = 'none';
+        document.getElementById('btn-save').style.display = 'block';
+        init();
+        setupControls();
+        animate();
+    };
+
+    function init() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87ceeb);
+        scene.fog = new THREE.Fog(0x87ceeb, 20, 60);
+
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(10, 10, 10); 
+        camera.rotation.order = 'YXZ';
+
+        renderer = new THREE.WebGLRenderer({ antialias: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.body.appendChild(renderer.domElement);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+        const sun = new THREE.DirectionalLight(0xffffff, 0.8);
+        sun.position.set(10, 20, 10);
+        scene.add(sun);
+
+        // Пытаемся загрузить мир из localStorage
+        const savedData = localStorage.getItem('mc_save_slot_' + currentSlot);
+        if(savedData) {
+            const parsed = JSON.parse(savedData);
+            parsed.forEach(b => createBlock(b.x, b.y, b.z, b.t));
+        } else {
+            // Если пусто — генерируем новый мир
+            for (let x = 0; x < 64; x++) {
+                for (let z = 0; z < 64; z++) {
+                    const h = Math.floor(Math.random() * 2) + 1;
+                    for(let y=0; y<h; y++) {
+                        createBlock(x, y, z, y === h-1 ? 1 : 2);
+                    }
+                }
+            }
+        }
+        updateBlockCount();
+        clock = new THREE.Clock();
+    }
+
+    // Сохранение мира
+    window.saveWorld = () => {
+        const data = blocks.map(b => ({
+            x: b.position.x, y: b.position.y, z: b.position.z, t: b.userData.type
+        }));
+        localStorage.setItem('mc_save_slot_' + currentSlot, JSON.stringify(data));
+        alert("Мир " + (currentSlot + 1) + " сохранен!");
+    };
+
+    function createBlock(x, y, z, type) {
+        const colors = { 1: 0x4d9a30, 2: 0x777777, 3: 0x8b4513, 4: 0xb22222, 5: 0xadd8e6, 6: 0x228b22, 7: 0x00ffff, 8: 0x333333 };
+        const mesh = new THREE.Mesh(
+            new THREE.BoxGeometry(1, 1, 1),
+            new THREE.MeshLambertMaterial({ color: colors[type], transparent: type === 5, opacity: type === 5 ? 0.6 : 1.0 })
+        );
+        mesh.position.set(x, y, z);
+        mesh.userData.type = type; // Запоминаем тип для сохранения
+        scene.add(mesh);
+        blocks.push(mesh);
+    }
+
+    function setupControls() {
+        const joy = nipplejs.create({ 
+            zone: document.getElementById('joy-zone'), 
+            mode: 'static', 
+            position: {left: '60px', bottom: '60px'}, 
+            color: 'white' 
+        });
+
+        joy.on('move', (e, d) => { 
+            moveDir.x = d.vector.x; 
+            moveDir.y = d.vector.y; 
+        });
+        joy.on('end', () => { moveDir = {x:0, y:0}; });
+
+        let tx, ty, isLooking = false;
+
+        document.addEventListener('touchstart', e => {
+            if (e.touches[0].pageX > window.innerWidth / 2) {
+                isLooking = true;
+                tx = e.touches[0].pageX;
+                ty = e.touches[0].pageY;
+            } else {
+                isLooking = false;
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchmove', e => {
+            if (isLooking && tx !== undefined) {
+                const dx = e.touches[0].pageX - tx;
+                const dy = e.touches[0].pageY - ty;
+                camera.rotation.y -= dx * 0.006;
+                camera.rotation.x -= dy * 0.006;
+                camera.rotation.x = Math.max(-1.5, Math.min(1.5, camera.rotation.x));
+                tx = e.touches[0].pageX; ty = e.touches[0].pageY;
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchend', () => { isLooking = false; tx = null; });
+
+        document.getElementById('btn-jump').ontouchstart = (e) => { 
+            e.preventDefault(); 
+            if(canJump){ velocity.y = 6.5; canJump = false; }
+        };
+
+        document.getElementById('btn-break').ontouchstart = (e) => { e.preventDefault(); interact(true); };
+        document.getElementById('btn-place').ontouchstart = (e) => { e.preventDefault(); interact(false); };
+    }
+
+    function interact(isBreak) {
+        const ray = new THREE.Raycaster();
+        ray.setFromCamera({x: 0, y: 0}, camera);
+        const hits = ray.intersectObjects(blocks);
+        if (hits.length > 0 && hits[0].distance < 4.5) {
+            if (isBreak) {
+                scene.remove(hits[0].object);
+                blocks.splice(blocks.indexOf(hits[0].object), 1);
+            } else {
+                const p = hits[0].object.position.clone().add(hits[0].face.normal);
+                createBlock(p.x, p.y, p.z, selectedBlock);
+            }
+            updateBlockCount();
+        }
+    }
+
+    function checkCollision(pos) {
+        for(let b of blocks) {
+            const bp = b.position;
+            if (pos.x + playerRadius > bp.x - 0.5 && pos.x - playerRadius < bp.x + 0.5 &&
+                pos.z + playerRadius > bp.z - 0.5 && pos.z - playerRadius < bp.z + 0.5) {
+                if (pos.y + 0.4 > bp.y - 0.5 && pos.y - 1.45 < bp.y + 0.5) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        const dt = clock.getDelta();
+
+        velocity.y -= 18 * dt;
+        let newPosY = camera.position.y + velocity.y * dt;
+        
+        if (!checkCollision(new THREE.Vector3(camera.position.x, newPosY, camera.position.z))) {
+            camera.position.y = newPosY;
+            canJump = false;
+        } else {
+            if(velocity.y < 0) canJump = true;
+            velocity.y = 0;
+        }
+
+        if (moveDir.x !== 0 || moveDir.y !== 0) {
+            const speed = 5.5 * dt;
+            const fwd = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);
+            const side = new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion);
+            fwd.y = 0; side.y = 0; fwd.normalize(); side.normalize();
+            const moveV = fwd.multiplyScalar(moveDir.y * speed).add(side.multiplyScalar(moveDir.x * speed));
+            
+            if (!checkCollision(new THREE.Vector3(camera.position.x + moveV.x, camera.position.y, camera.position.z))) camera.position.x += moveV.x;
+            if (!checkCollision(new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z + moveV.z))) camera.position.z += moveV.z;
+        }
+
+        if (camera.position.y < -15) {
+            camera.position.set(32, 10, 32);
+            velocity.y = 0;
+        }
+
+        document.getElementById('coords').innerText = `${Math.floor(camera.position.x)},${Math.floor(camera.position.y)},${Math.floor(camera.position.z)}`;
+        renderer.render(scene, camera);
+    }
+
+    window.setSlot = (n) => {
+        selectedBlock = n;
+        document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
+        document.getElementById('hotbar').children[n-1].classList.add('selected');
+    };
+
+    function updateBlockCount() { document.getElementById('b-count').innerText = blocks.length; }
+    window.onresize = () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    };
+</script>
+</body>
+</html>
