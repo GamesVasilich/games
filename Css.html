@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Css.html - 3D Multiplayer</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; font-family: monospace; }
+        #ui { position: absolute; top: 10px; left: 10px; color: #0f0; z-index: 10; pointer-events: none; }
+        #joy-v { position: absolute; bottom: 30px; left: 30px; width: 100px; height: 100px; background: rgba(0,255,0,0.1); border-radius: 50%; display: none; touch-action: none; }
+        #joy-s { position: absolute; top: 25px; left: 25px; width: 50px; height: 50px; background: #0f0; border-radius: 50%; }
+    </style>
+</head>
+<body>
+    <div id="ui"><h1>Css.html</h1><div id="st">Подключение...</div></div>
+    <div id="joy-v"><div id="joy-s"></div></div>
+
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+    </script>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x050505);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        scene.add(new THREE.GridHelper(100, 50, 0x00ff00, 0x222222));
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+        const socket = io();
+        const players = {};
+        const isM = 'ontouchstart' in window;
+
+        // Создание врагов
+        function addP(id, col, x, z) {
+            const b = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshPhongMaterial({color: col}));
+            b.position.set(x, 0.5, z);
+            const g = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.2, 0.2), new THREE.MeshBasicMaterial({color: 0xffffff}));
+            g.position.set(0, 0.3, -0.5);
+            b.add(g);
+            scene.add(b);
+            players[id] = b;
+        }
+
+        socket.on('currentPlayers', (ps) => { 
+            document.getElementById('st').innerText = "ONLINE";
+            Object.keys(ps).forEach(id => { if(id !== socket.id) addP(id, ps[id].color, ps[id].x, ps[id].z) });
+        });
+        socket.on('newPlayer', (p) => addP(p.id, p.color, p.x, p.z));
+        socket.on('playerMoved', (p) => { if(players[p.id]) { players[p.id].position.set(p.x, 0.5, p.z); players[p.id].rotation.y = p.ry; } });
+        socket.on('disconnectPlayer', (id) => { if(players[id]) { scene.remove(players[id]); delete players[id]; } });
+
+        // Управление
+        const ctrl = new PointerLockControls(camera, document.body);
+        if(!isM) document.addEventListener('click', () => ctrl.lock());
+        else document.getElementById('joy-v').style.display = 'block';
+
+        let move = { f:0, b:0, l:0, r:0 };
+        const key = (e, v) => {
+            if(e.code==='KeyW') move.f=v; if(e.code==='KeyS') move.b=v;
+            if(e.code==='KeyA') move.l=v; if(e.code==='KeyD') move.r=v;
+        };
+        document.addEventListener('keydown', (e)=>key(e,1));
+        document.addEventListener('keyup', (e)=>key(e,0));
+
+        // Мобильный джойстик (упрощенно)
+        let jX=0, jY=0;
+        document.getElementById('joy-v').addEventListener('touchmove', (e)=>{
+            const t = e.touches[0];
+            const r = document.getElementById('joy-v').getBoundingClientRect();
+            jX = (t.clientX - (r.left+50))/50; jY = (t.clientY - (r.top+50))/50;
+            move.f = jY < -0.2 ? 1:0; move.b = jY > 0.2 ? 1:0;
+            move.l = jX < -0.2 ? 1:0; move.r = jX > 0.2 ? 1:0;
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if(ctrl.isLocked || isM) {
+                const speed = 0.1;
+                const dir = new THREE.Vector3();
+                camera.getWorldDirection(dir); dir.y = 0; dir.normalize();
+                const side = new THREE.Vector3().crossVectors(new THREE.Vector3(0,1,0), dir);
+
+                if(move.f) camera.position.addScaledVector(dir, speed);
+                if(move.b) camera.position.addScaledVector(dir, -speed);
+                if(move.l) camera.position.addScaledVector(side, speed);
+                if(move.r) camera.position.addScaledVector(side, -speed);
+
+                socket.emit('playerMovement', { x: camera.position.x, z: camera.position.z, ry: camera.rotation.y });
+            }
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>
