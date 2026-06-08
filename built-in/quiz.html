@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Викторина</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #1a1a2e;
+      color: #e6e6e6;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #262640;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #4ecdc4;
+    }
+    .question {
+      font-size: 1.4rem;
+      margin: 30px 0;
+      line-height: 1.6;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin: 20px 0;
+    }
+    button {
+      padding: 15px;
+      font-size: 1rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background: #3a3a5a;
+      color: white;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #4a4a7a;
+    }
+    #score {
+      font-size: 1.2rem;
+      margin: 20px 0;
+      color: #ff6b6b;
+    }
+    #console {
+      margin-top: 30px;
+      padding: 19px;
+      background: #1e1e30;
+      border: 1px solid #4ecdc4;
+      border-radius: 8px;
+      text-align: left;
+      font-family: monospace;
+      max-height: 200px;
+      overflow-y: auto;
+      display: none; /* скрыто по умолчанию */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Викторина</h1>
+    <div id="question" class="question"></div>
+    <div class="options" id="options"></div>
+    <div id="score">Счёт: 0</div>
+    <button onclick="nextQuestion()">Следующий вопрос</button>
+     <div></div>
+     <div></div>
+     <button class="btn-menu" onclick="window.location.href='../index.html'">В меню</button>
+    <div id="console"></div> <!-- Консоль -->
+  </div>
+
+
+  <script>
+  
+    const gameMode = 0
+
+
+    // База вопросов (можно расширять)
+    const questions = [
+      {
+        question: "Сколько планет в Солнечной системе?",
+        options: ["7", "8", "9", "10"],
+        correct: 1 // индекс правильного ответа (8)
+      },
+      {
+        question: "Какая столица Франции?",
+        options: ["Берлин", "Мадрид", "Париж", "Рим"],
+        correct: 2
+      },
+      {
+        question: "Кто написал «Евгения Онегина»?",
+        options: ["Лермонтов", "Пушкин", "Толстой", "Гоголь"],
+        correct: 1
+      },
+      {
+        question: "Какой элемент обозначается символом O?",
+        options: ["Золото", "Кислород", "Олово", "Осмий"],
+        correct: 1
+      },
+      {
+        question: "В каком году человек впервые ступил на Луну?",
+        options: ["1957", "1961", "1969", "1975"],
+        correct: 2
+      },
+      {
+  question: "кто основатель Games_Vasilich",
+  options: ["3д анемецшен", "игровой канал", "василич" ],
+  correct: 3
+      }
+    ];
+
+    let score = 0;
+    let currentQuestion = null;
+
+    // Инициализация
+    function init() {
+      if (gameMode === 1) {
+        document.getElementById('console').style.display = 'block';
+        logToConsole('Консоль активирована.');
+      }
+      nextQuestion();
+    }
+
+    // Вывод сообщения в консоль (если активна)
+    function logToConsole(msg) {
+      if (gameMode === 1) {
+        const consoleEl = document.getElementById('console');
+        const line = document.createElement('div');
+        line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        consoleEl.appendChild(line);
+        consoleEl.scrollTop = consoleEl.scrollHeight; // прокрутка вниз
+      }
+    }
+
+    // Выбор случайного вопроса
+    function getRandomQuestion() {
+      const idx = Math.floor(Math.random() * questions.length);
+      return questions[idx];
+    }
+
+    // Отображение вопроса
+    function displayQuestion(q) {
+      document.getElementById('question').textContent = q.question;
+      const optionsEl = document.getElementById('options');
+      optionsEl.innerHTML = '';
+
+      q.options.forEach((option, idx) => {
+        const btn = document.createElement('button');
+        btn.textContent = option;
+        btn.onclick = () => checkAnswer(idx);
+        optionsEl.appendChild(btn);
+      });
+    }
+
+    // Проверка ответа
+    function checkAnswer(selectedIdx) {
+      if (selectedIdx === currentQuestion.correct) {
+        score++;
+        document.getElementById('score').textContent = `Счёт: ${score}`;
+        logToConsole(`Правильно! Счёт: ${score}`);
+      } else {
+        logToConsole(`Неверно. Правильный ответ: ${currentQuestion.options[currentQuestion.correct]}`);
+      }
+      nextQuestion();
+    }
+
+    // Следующий вопрос
+    function nextQuestion() {
+      currentQuestion = getRandomQuestion();
+      displayQuestion(currentQuestion);
+      logToConsole(`Новый вопрос: "${currentQuestion.question}"`);
+    }
+
+    // Запуск
+    window.onload = init;
+  </script>
+</body>
+</html>

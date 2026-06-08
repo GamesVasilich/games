@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🚀 Тетрис PRO | Galaxy Arcade</title>
+  <style>
+    :root {
+      --primary: #00f2fe;
+      --secondary: #4facfe;
+      --accent: #f093fb;
+      --bg: #0b0b1a;
+      --glass: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --smooth: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      background-image: radial-gradient(circle at 50% 50%, #1b2735 0%, #090a0f 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: white;
+      overflow-x: hidden;
+      opacity: 0;
+      animation: fadeInPage 0.8s ease forwards;
+    }
+
+    @keyframes fadeInPage {
+      from { opacity: 0; transform: scale(1.05); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .game-container {
+      background: var(--glass);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-radius: 30px;
+      padding: 25px;
+      text-align: center;
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+      max-width: 360px;
+      width: 95%;
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 { 
+      font-size: 1.8rem; 
+      margin-bottom: 20px; 
+      background: linear-gradient(45deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 900;
+      letter-spacing: 4px;
+    }
+    
+    .score-board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+      background: rgba(0,0,0,0.4);
+      padding: 15px;
+      border-radius: 20px;
+      border: 1px solid var(--glass-border);
+    }
+
+    .score-item { font-size: 0.7rem; color: rgba(255,255,255,0.6); text-transform: uppercase; }
+    .score-item span { display: block; font-size: 1.2rem; color: var(--primary); font-weight: bold; margin-top: 5px; }
+
+    .game-area {
+      position: relative;
+      width: 240px;
+      height: 480px;
+      background: rgba(0,0,0,0.5);
+      border: 2px solid var(--glass-border);
+      border-radius: 15px;
+      margin: 0 auto 20px;
+      overflow: hidden;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    .block {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.3), 0 0 15px currentColor;
+    }
+
+    .mobile-controls {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 15px;
+    }
+
+    .control-btn {
+      padding: 15px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.3s var(--smooth);
+    }
+
+    .control-btn:hover { background: var(--primary); color: #000; }
+
+    .btn-main {
+      grid-column: span 3;
+      background: linear-gradient(45deg, var(--secondary), var(--primary));
+      border: none;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .restart-btn {
+      margin-top: 15px;
+      width: 100%;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.6);
+      padding: 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .back-link { 
+      margin-top: 25px; 
+      display: inline-block; 
+      color: var(--accent); 
+      text-decoration: none; 
+      font-size: 1rem;
+      font-weight: bold;
+      padding: 10px 20px;
+      border: 1px solid var(--accent);
+      border-radius: 15px;
+      transition: 0.3s;
+    }
+
+    .back-link:hover {
+      background: var(--accent);
+      color: #000;
+      box-shadow: 0 0 15px var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-container">
+    <h1>TETRIS</h1>
+
+    <div class="score-board">
+      <div class="score-item">Счёт<span id="score">0</span></div>
+      <div class="score-item">Уровень<span id="level">1</span></div>
+      <div class="score-item">Линии<span id="lines">0</span></div>
+    </div>
+
+    <div class="game-area" id="game-area"></div>
+
+    <div class="mobile-controls">
+      <button class="control-btn" id="btn-left">←</button>
+      <button class="control-btn" id="btn-down">↓</button>
+      <button class="control-btn" id="btn-right">→</button>
+      <button class="control-btn btn-main" id="btn-rotate">ПОВОРОТ</button>
+    </div>
+
+    <button class="restart-btn" onclick="restartGame()">ЗАПУСТИТЬ ЗАНОВО</button>
+    
+    <button class="back-link" onclick="window.location.href='../index.html'">В меню</button>
+  </div>
+
+  <script>
+    // Весь JS код остается таким же, как в твоем сообщении
+    const COLS = 10;
+    const ROWS = 20;
+    const BLOCK_SIZE = 24;
+    const COLORS = [null, '#00f2fe', '#4facfe', '#f093fb', '#f6d365', '#5eeff5', '#eb3349', '#a18cd1'];
+    const PIECES = {
+      'I': [[0,1,0,0], [0,1,0,0], [0,1,0,0], [0,1,0,0]],
+      'J': [[2,0,0], [2,2,2], [0,0,0]],
+      'L': [[0,0,3], [3,3,3], [0,0,0]],
+      'O': [[4,4], [4,4]],
+      'S': [[0,5,5], [5,5,0], [0,0,0]],
+      'Z': [[6,6,0], [0,6,6], [0,0,0]],
+      'T': [[0,7,0], [7,7,7], [0,0,0]]
+    };
+
+    const gameArea = document.getElementById('game-area');
+    let board = Array.from({length: ROWS}, () => Array(COLS).fill(0));
+    let score = 0, lines = 0, level = 1;
+    let dropCounter = 0, dropInterval = 1000, lastTime = 0;
+    let isGameOver = false;
+    let piece = { matrix: [], pos: {x: 0, y: 0} };
+
+    function createPiece() {
+      const types = Object.keys(PIECES);
+      const type = types[Math.floor(Math.random() * types.length)];
+      piece.matrix = PIECES[type];
+      piece.pos.y = 0;
+      piece.pos.x = Math.floor(COLS / 2) - Math.floor(piece.matrix[0].length / 2);
+      if (isCollision()) {
+        isGameOver = true;
+        alert("ИГРА ОКОНЧЕНА! Ваш счёт: " + score);
+        restartGame();
+      }
+    }
+
+    function draw() {
+      gameArea.innerHTML = '';
+      board.forEach((row, y) => {
+        row.forEach((value, x) => {
+          if (value > 0) drawBlock(x, y, value);
+        });
+      });
+      piece.matrix.forEach((row, y) => {
+        row.forEach((value, x) => {
+          if (value > 0) drawBlock(piece.pos.x + x, piece.pos.y + y, value);
+        });
+      });
+    }
+
+    function drawBlock(x, y, colorIndex) {
+      const block = document.createElement('div');
+      block.className = 'block';
+      block.style.left = x * BLOCK_SIZE + 'px';
+      block.style.top = y * BLOCK_SIZE + 'px';
+      block.style.backgroundColor = COLORS[colorIndex];
+      block.style.color = COLORS[colorIndex];
+      gameArea.appendChild(block);
+    }
+
+    function isCollision() {
+      const [m, o] = [piece.matrix, piece.pos];
+      for (let y = 0; y < m.length; y++) {
+        for (let x = 0; x < m[y].length; x++) {
+          if (m[y][x] !== 0) {
+            let boardY = y + o.y;
+            let boardX = x + o.x;
+            if (boardY >= ROWS || boardX < 0 || boardX >= COLS || (board[boardY] && board[boardY][boardX] !== 0)) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    }
+
+    function mergePiece() {
+      piece.matrix.forEach((row, y) => {
+        row.forEach((value, x) => {
+          if (value !== 0) board[y + piece.pos.y][x + piece.pos.x] = value;
+        });
+      });
+    }
+
+    function clearLines() {
+      let rowCount = 0;
+      for (let y = ROWS - 1; y >= 0; y--) {
+        if (board[y].every(value => value !== 0)) {
+          board.splice(y, 1);
+          board.unshift(Array(COLS).fill(0));
+          rowCount++;
+          y++;
+        }
+      }
+      if (rowCount > 0) {
+        lines += rowCount;
+        score += rowCount * 100 * level;
+        level = Math.floor(lines / 10) + 1;
+        dropInterval = Math.max(100, 1000 - (level - 1) * 100);
+        updateUI();
+      }
+    }
+
+    function moveDown() {
+      piece.pos.y++;
+      if (isCollision()) {
+        piece.pos.y--;
+        mergePiece();
+        clearLines();
+        createPiece();
+      }
+      dropCounter = 0;
+    }
+
+    function moveSide(dir) {
+      piece.pos.x += dir;
+      if (isCollision()) piece.pos.x -= dir;
+    }
+
+    function rotate() {
+      const oldMatrix = piece.matrix;
+      piece.matrix = piece.matrix[0].map((_, i) => piece.matrix.map(row => row[i]).reverse());
+      let offset = 1;
+      const pos = piece.pos.x;
+      while (isCollision()) {
+        piece.pos.x += offset;
+        offset = -(offset + (offset > 0 ? 1 : -1));
+        if (offset > piece.matrix[0].length) {
+          piece.matrix = oldMatrix;
+          piece.pos.x = pos;
+          return;
+        }
+      }
+    }
+
+    function updateUI() {
+      document.getElementById('score').innerText = score;
+      document.getElementById('lines').innerText = lines;
+      document.getElementById('level').innerText = level;
+    }
+
+    function update(time = 0) {
+      if (isGameOver) return;
+      const deltaTime = time - lastTime;
+      lastTime = time;
+      dropCounter += deltaTime;
+      if (dropCounter > dropInterval) moveDown();
+      draw();
+      requestAnimationFrame(update);
+    }
+
+    function restartGame() {
+      board = Array.from({length: ROWS}, () => Array(COLS).fill(0));
+      score = 0; lines = 0; level = 1;
+      dropInterval = 1000;
+      isGameOver = false;
+      updateUI();
+      createPiece();
+      if (lastTime === 0) update();
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft') moveSide(-1);
+      if (e.key === 'ArrowRight') moveSide(1);
+      if (e.key === 'ArrowDown') moveDown();
+      if (e.key === 'ArrowUp') rotate();
+    });
+
+    document.getElementById('btn-left').onclick = () => moveSide(-1);
+    document.getElementById('btn-right').onclick = () => moveSide(1);
+    document.getElementById('btn-down').onclick = () => moveDown();
+    document.getElementById('btn-rotate').onclick = () => rotate();
+
+    createPiece();
+    update();
+  </script>
+</body>
+</html>

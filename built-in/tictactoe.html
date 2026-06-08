@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Крестики-нолики</title>
+  <style>
+    :root {
+      --primary: #00f2fe;
+      --accent: #f093fb;
+      --bg: #0b0b1a;
+      --glass: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --smooth: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--bg);
+      background-image: radial-gradient(circle at 50% 50%, #1b2735 0%, #090a0f 100%);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      animation: fadeIn 0.8s ease forwards;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      background: linear-gradient(45deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    /* ПАНЕЛЬ НАСТРОЕК */
+    .settings {
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      padding: 15px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    select {
+      background: #1b262c;
+      color: white;
+      border: 1px solid var(--primary);
+      padding: 5px 10px;
+      border-radius: 8px;
+      outline: none;
+    }
+
+    #status {
+      margin: 15px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--primary);
+      text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+    }
+
+    /* ИГРОВОЕ ПОЛЕ */
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      gap: 10px;
+      margin: 10px auto;
+    }
+
+    .cell {
+      width: 100px;
+      height: 100px;
+      background: var(--glass);
+      border: 2px solid var(--glass-border);
+      border-radius: 15px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 50px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: all 0.3s var(--smooth);
+    }
+
+    .cell:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--primary);
+      transform: scale(1.05);
+    }
+
+    .cell.x-color { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
+    .cell.o-color { color: var(--accent); text-shadow: 0 0 15px var(--accent); }
+
+    button {
+      padding: 12px 30px;
+      background: linear-gradient(45deg, var(--secondary), var(--primary));
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
+      margin-top: 20px;
+      transition: 0.3s;
+    }
+
+    button:active { transform: scale(0.95); }
+    .btn-menu { background: #34495e; }
+
+    button:hover { transform: translateY(-3px); box-shadow: 0 5px 20px rgba(0, 242, 254, 0.4); }
+
+    a { display: block; margin: 20px; color: var(--accent); text-decoration: none; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h1>Крестики‑нолики</h1>
+
+  <div class="settings">
+    <div>
+      Режим: 
+      <select id="gameMode" onchange="resetGame()">
+        <option value="friend">Против друга</option>
+        <option value="ai">Против ИИ</option>
+      </select>
+    </div>
+    <div id="difficultyContainer" style="display:none;">
+      Сложность: 
+      <select id="difficulty">
+        <option value="easy">Легкий</option>
+        <option value="normal">Нормальный</option>
+        <option value="hard">Тяжелый</option>
+        <option value="hardcore">ХАРДКОР</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="status">Ход: X</div>
+
+  <div class="board" id="board">
+    <div class="cell" data-idx="0"></div>
+    <div class="cell" data-idx="1"></div>
+    <div class="cell" data-idx="2"></div>
+    <div class="cell" data-idx="3"></div>
+    <div class="cell" data-idx="4"></div>
+    <div class="cell" data-idx="5"></div>
+    <div class="cell" data-idx="6"></div>
+    <div class="cell" data-idx="7"></div>
+    <div class="cell" data-idx="8"></div>
+  </div>
+
+  <button class="btn-menu" onclick="resetGame()">Новая игра</button>
+  <button class="btn-menu" onclick="window.location.href='../index.html'">В меню</button>
+
+  <script>
+    let currentPlayer = 'X';
+    let boardState = Array(9).fill(null);
+    let gameActive = true;
+    
+    const cells = document.querySelectorAll('.cell');
+    const status = document.getElementById('status');
+    const gameMode = document.getElementById('gameMode');
+    const difficultyContainer = document.getElementById('difficultyContainer');
+    const difficulty = document.getElementById('difficulty');
+
+    gameMode.addEventListener('change', () => {
+      difficultyContainer.style.display = gameMode.value === 'ai' ? 'block' : 'none';
+    });
+
+    function handleClick(e) {
+      const idx = parseInt(e.target.getAttribute('data-idx'));
+      if (boardState[idx] || !gameActive) return;
+
+      makeMove(idx);
+
+      if (gameActive && gameMode.value === 'ai' && currentPlayer === 'O') {
+        setTimeout(aiMove, 500);
+      }
+    }
+
+    function makeMove(idx) {
+      boardState[idx] = currentPlayer;
+      cells[idx].textContent = currentPlayer;
+      cells[idx].classList.add(currentPlayer === 'X' ? 'x-color' : 'o-color');
+
+      if (checkWin(boardState, currentPlayer)) {
+        status.textContent = `Победа: ${currentPlayer}!`;
+        gameActive = false;
+        return;
+      }
+
+      if (boardState.every(cell => cell)) {
+        status.textContent = 'Ничья!';
+        gameActive = false;
+        return;
+      }
+
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+      status.textContent = `Ход: ${currentPlayer}`;
+    }
+
+    // ИСКУССТВЕННЫЙ ИНТЕЛЛЕКТ
+    function aiMove() {
+      if (!gameActive) return;
+      let move;
+      const diff = difficulty.value;
+
+      if (diff === 'easy') {
+        move = getRandomMove();
+      } else if (diff === 'normal') {
+        move = Math.random() > 0.5 ? getBestMove() : getRandomMove();
+      } else if (diff === 'hard') {
+        move = Math.random() > 0.2 ? getBestMove() : getRandomMove();
+      } else {
+        move = getBestMove(); // Хардкор - Минимакс
+      }
+
+      makeMove(move);
+    }
+
+    function getRandomMove() {
+      const available = boardState.map((v, i) => v === null ? i : null).filter(v => v !== null);
+      return available[Math.floor(Math.random() * available.length)];
+    }
+
+    function getBestMove() {
+      let bestScore = -Infinity;
+      let move;
+      for (let i = 0; i < 9; i++) {
+        if (boardState[i] === null) {
+          boardState[i] = 'O';
+          let score = minimax(boardState, 0, false);
+          boardState[i] = null;
+          if (score > bestScore) {
+            bestScore = score;
+            move = i;
+          }
+        }
+      }
+      return move;
+    }
+
+    const scores = { 'O': 10, 'X': -10, 'tie': 0 };
+
+    function minimax(board, depth, isMaximizing) {
+      if (checkWin(board, 'O')) return scores['O'];
+      if (checkWin(board, 'X')) return scores['X'];
+      if (board.every(cell => cell)) return scores['tie'];
+
+      if (isMaximizing) {
+        let bestScore = -Infinity;
+        for (let i = 0; i < 9; i++) {
+          if (board[i] === null) {
+            board[i] = 'O';
+            let score = minimax(board, depth + 1, false);
+            board[i] = null;
+            bestScore = Math.max(score, bestScore);
+          }
+        }
+        return bestScore;
+      } else {
+        let bestScore = Infinity;
+        for (let i = 0; i < 9; i++) {
+          if (board[i] === null) {
+            board[i] = 'X';
+            let score = minimax(board, depth + 1, true);
+            board[i] = null;
+            bestScore = Math.min(score, bestScore);
+          }
+        }
+        return bestScore;
+      }
+    }
+
+    function checkWin(board, player) {
+      const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+      return lines.some(line => line.every(i => board[i] === player));
+    }
+
+    function resetGame() {
+      boardState.fill(null);
+      cells.forEach(cell => {
+        cell.textContent = '';
+        cell.classList.remove('x-color', 'o-color');
+      });
+      currentPlayer = 'X';
+      gameActive = true;
+      status.textContent = 'Ход: X';
+    }
+
+    cells.forEach(cell => cell.addEventListener('click', handleClick));
+  </script>
+</body>
+</html>

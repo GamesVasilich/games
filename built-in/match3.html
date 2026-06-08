@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Три в ряд </title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1a1a2e;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      touch-action: none;
+    }
+    .container {
+      width: 100%;
+      max-width: 450px;
+      padding: 10px;
+      text-align: center;
+    }
+    h1 {
+      color: #fff;
+      text-shadow: 0 0 10px #f39c12;
+      margin-bottom: 10px;
+      font-size: 1.8rem;
+    }
+    #score-container {
+      background: rgba(255,255,255,0.1);
+      padding: 10px;
+      border-radius: 15px;
+      margin-bottom: 15px;
+    }
+    #score {
+      font-size: 1.5rem;
+      color: #f1c40f;
+      font-weight: bold;
+    }
+    #game-board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 5px;
+      background: rgba(0,0,0,0.3);
+      padding: 8px;
+      border-radius: 12px;
+      position: relative;
+    }
+    .cell {
+      aspect-ratio: 1/1;
+      position: relative;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .gem {
+      position: absolute;
+      inset: 0;
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.8rem;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 1;
+      user-select: none;
+    }
+    /* Цвета */
+    .red { background: linear-gradient(145deg, #ff5f6d, #ff3131); box-shadow: 0 4px #b30000; }
+    .blue { background: linear-gradient(145deg, #2193b0, #6dd5ed); box-shadow: 0 4px #005f73; }
+    .green { background: linear-gradient(145deg, #11998e, #38ef7d); box-shadow: 0 4px #0a5d56; }
+    .yellow { background: linear-gradient(145deg, #ffe259, #ffa751); box-shadow: 0 4px #a67c00; }
+    .purple { background: linear-gradient(145deg, #8e2de2, #4a00e0); box-shadow: 0 4px #320099; }
+    .orange { background: linear-gradient(145deg, #f12711, #f5af19); box-shadow: 0 4px #9b190a; }
+
+    .selected { 
+      transform: scale(0.9);
+      outline: 3px solid white;
+      outline-offset: 2px;
+      z-index: 2;
+    }
+    
+    .match-anim {
+      animation: popOut 0.4s forwards;
+    }
+
+    @keyframes popOut {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); opacity: 0.8; }
+      100% { transform: scale(0); opacity: 0; }
+    }
+
+    /* Всплывающие очки */
+    .floating-score {
+      position: absolute;
+      color: #fff;
+      font-weight: bold;
+      pointer-events: none;
+      animation: floatUp 1s ease-out forwards;
+      z-index: 10;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(0); opacity: 1; }
+      100% { transform: translateY(-50px); opacity: 0; }
+    }
+
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    button {
+      padding: 12px 20px;
+      border-radius: 10px;
+      border: none;
+      background: #f39c12;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    button:active { transform: scale(0.95); }
+    .btn-menu { background: #34495e; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Super Match 3</h1>
+    <div id="score-container">
+      <div id="score">Очки: 0</div>
+    </div>
+    
+    <div id="game-board"></div>
+
+    <div class="controls">
+      <button onclick="resetGame()">Заново</button>
+      <button class="btn-menu" onclick="window.location.href='../index.html'">В меню</button>
+    </div>
+  </div>
+
+  <script>
+    const BOARD_SIZE = 8;
+    const GEM_TYPES = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
+    const GEM_ICONS = { red: '💎', blue: '💧', green: '🌿', yellow: '⭐', purple: '🔮', orange: '🔥' };
+    
+    let board = [];
+    let score = 0;
+    let selectedCell = null;
+    let isProcessing = false;
+
+    const gameBoard = document.getElementById('game-board');
+    const scoreDisplay = document.getElementById('score');
+
+    function createBoard() {
+      board = [];
+      for (let y = 0; y < BOARD_SIZE; y++) {
+        board[y] = [];
+        for (let x = 0; x < BOARD_SIZE; x++) {
+          let type;
+          // Исключаем совпадения при генерации
+          do {
+            type = GEM_TYPES[Math.floor(Math.random() * GEM_TYPES.length)];
+          } while (
+            (x >= 2 && type === board[y][x-1] && type === board[y][x-2]) ||
+            (y >= 2 && type === board[y-1][x] && type === board[y-2][x])
+          );
+          board[y][x] = type;
+        }
+      }
+    }
+
+    function renderBoard() {
+      gameBoard.innerHTML = '';
+      for (let y = 0; y < BOARD_SIZE; y++) {
+        for (let x = 0; x < BOARD_SIZE; x++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.dataset.x = x;
+          cell.dataset.y = y;
+          
+          if (board[y][x]) {
+            const gem = document.createElement('div');
+            gem.className = `gem ${board[y][x]}`;
+            gem.textContent = GEM_ICONS[board[y][x]];
+            cell.appendChild(gem);
+          }
+          
+          cell.addEventListener('pointerdown', handleCellClick);
+          gameBoard.appendChild(cell);
+        }
+      }
+    }
+
+    async function handleCellClick(e) {
+      if (isProcessing) return;
+      const x = parseInt(e.currentTarget.dataset.x);
+      const y = parseInt(e.currentTarget.dataset.y);
+
+      if (!selectedCell) {
+        selectedCell = { x, y };
+        e.currentTarget.querySelector('.gem').classList.add('selected');
+      } else {
+        const dx = Math.abs(x - selectedCell.x);
+        const dy = Math.abs(y - selectedCell.y);
+
+        if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
+          await swapGems(selectedCell.x, selectedCell.y, x, y);
+        }
+        
+        clearSelection();
+        selectedCell = null;
+      }
+    }
+
+    async function swapGems(x1, y1, x2, y2) {
+      isProcessing = true;
+      const gem1 = document.querySelector(`.cell[data-x="${x1}"][data-y="${y1}"] .gem`);
+      const gem2 = document.querySelector(`.cell[data-x="${x2}"][data-y="${y2}"] .gem`);
+
+      // Визуальный обмен
+      const dx = (x2 - x1) * 100;
+      const dy = (y2 - y1) * 100;
+      
+      gem1.style.transform = `translate(${dx}%, ${dy}%)`;
+      gem2.style.transform = `translate(${-dx}%, ${-dy}%)`;
+
+      await new Promise(r => setTimeout(r, 300));
+
+      // Обмен в данных
+      [board[y1][x1], board[y2][x2]] = [board[y2][x2], board[y1][x1]];
+
+      const matches = findMatches();
+      if (matches.length > 0) {
+        await processMatches();
+      } else {
+        // Возвращаем назад если нет совпадений
+        gem1.style.transform = '';
+        gem2.style.transform = '';
+        [board[y1][x1], board[y2][x2]] = [board[y2][x2], board[y1][x1]];
+        await new Promise(r => setTimeout(r, 200));
+      }
+      
+      renderBoard();
+      isProcessing = false;
+    }
+
+    function findMatches() {
+      let matchData = [];
+
+      // Горизонтальные
+      for (let y = 0; y < BOARD_SIZE; y++) {
+        let run = 1;
+        for (let x = 1; x <= BOARD_SIZE; x++) {
+          if (x < BOARD_SIZE && board[y][x] === board[y][x-1]) {
+            run++;
+          } else {
+            if (run >= 3) {
+              for (let i = 1; i <= run; i++) matchData.push({x: x-i, y: y, count: run});
+            }
+            run = 1;
+          }
+        }
+      }
+
+      // Вертикальные
+      for (let x = 0; x < BOARD_SIZE; x++) {
+        let run = 1;
+        for (let y = 1; y <= BOARD_SIZE; y++) {
+          if (y < BOARD_SIZE && board[y][x] === board[y-1][x]) {
+            run++;
+          } else {
+            if (run >= 3) {
+              for (let i = 1; i <= run; i++) matchData.push({x: x, y: y-i, count: run});
+            }
+            run = 1;
+          }
+        }
+      }
+      return matchData;
+    }
+
+    async function processMatches() {
+      const matches = findMatches();
+      if (matches.length === 0) return;
+
+      // Считаем очки с учетом комбо
+      let turnScore = 0;
+      const uniqueMatches = new Set();
+      
+      matches.forEach(m => {
+        const key = `${m.x}-${m.y}`;
+        if (!uniqueMatches.has(key)) {
+          uniqueMatches.add(key);
+          // Базовые очки + бонус за длину линии
+          if (m.count === 3) turnScore += 10;
+          else if (m.count === 4) turnScore += 25; // Super
+          else if (m.count >= 5) turnScore += 60; // Mega
+        }
+      });
+
+      // Эффекты удаления
+      matches.forEach(m => {
+        const cell = document.querySelector(`.cell[data-x="${m.x}"][data-y="${m.y}"] .gem`);
+        if (cell) cell.classList.add('match-anim');
+      });
+
+      showFloatingScore(turnScore);
+      score += turnScore;
+      scoreDisplay.textContent = `Очки: ${score}`;
+
+      await new Promise(r => setTimeout(r, 400));
+
+      // Удаление из данных
+      uniqueMatches.forEach(key => {
+        const [x, y] = key.split('-').map(Number);
+        board[y][x] = null;
+      });
+
+      fillBoard();
+      renderBoard();
+      await new Promise(r => setTimeout(r, 300));
+      
+      // Рекурсивная проверка новых совпадений после падения
+      return processMatches();
+    }
+
+    function showFloatingScore(amount) {
+      const popup = document.createElement('div');
+      popup.className = 'floating-score';
+      let text = `+${amount}`;
+      if (amount > 50) text = `🔥 MEGA COMBO +${amount}`;
+      else if (amount > 30) text = `⭐ SUPER +${amount}`;
+      
+      popup.textContent = text;
+      popup.style.left = '50%';
+      popup.style.top = '50%';
+      gameBoard.appendChild(popup);
+      setTimeout(() => popup.remove(), 1000);
+    }
+
+    function fillBoard() {
+      // Камни падают вниз
+      for (let x = 0; x < BOARD_SIZE; x++) {
+        let emptySpaces = 0;
+        for (let y = BOARD_SIZE - 1; y >= 0; y--) {
+          if (board[y][x] === null) {
+            emptySpaces++;
+          } else if (emptySpaces > 0) {
+            board[y + emptySpaces][x] = board[y][x];
+            board[y][x] = null;
+          }
+        }
+        // Заполнение новых
+        for (let y = 0; y < emptySpaces; y++) {
+          board[y][x] = GEM_TYPES[Math.floor(Math.random() * GEM_TYPES.length)];
+        }
+      }
+    }
+
+    function clearSelection() {
+      document.querySelectorAll('.gem').forEach(g => g.classList.remove('selected'));
+    }
+
+    function resetGame() {
+      score = 0;
+      scoreDisplay.textContent = 'Очки: 0';
+      createBoard();
+      renderBoard();
+    }
+
+    // Старт
+    createBoard();
+    renderBoard();
+  </script>
+</body>
+</html>
