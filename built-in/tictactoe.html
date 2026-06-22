@@ -7,6 +7,7 @@
   <style>
     :root {
       --primary: #00f2fe;
+      --secondary: #4facfe; /* ИСПРАВЛЕНО: Добавил забытую переменную, теперь у кнопок есть цвет */
       --accent: #f093fb;
       --bg: #0b0b1a;
       --glass: rgba(255, 255, 255, 0.05);
@@ -40,6 +41,7 @@
       -webkit-text-fill-color: transparent;
       text-transform: uppercase;
       letter-spacing: 2px;
+      text-align: center;
     }
 
     /* ПАНЕЛЬ НАСТРОЕК */
@@ -118,11 +120,15 @@
     }
 
     button:active { transform: scale(0.95); }
-    .btn-menu { background: #34495e; }
+    .btn-menu { background: #34495e; color: white; } /* ИСПРАВЛЕНО: Белый текст на серой кнопке читается лучше */
 
     button:hover { transform: translateY(-3px); box-shadow: 0 5px 20px rgba(0, 242, 254, 0.4); }
 
-    a { display: block; margin: 20px; color: var(--accent); text-decoration: none; font-weight: bold; }
+    /* Добавил адаптивности кнопкам и контейнерам */
+    @media (max-width: 360px) {
+      .board { grid-template-columns: repeat(3, 85px); }
+      .cell { width: 85px; height: 85px; font-size: 40px; }
+    }
   </style>
 </head>
 <body>
@@ -132,7 +138,7 @@
   <div class="settings">
     <div>
       Режим: 
-      <select id="gameMode" onchange="resetGame()">
+      <select id="gameMode">
         <option value="friend">Против друга</option>
         <option value="ai">Против ИИ</option>
       </select>
@@ -162,13 +168,14 @@
     <div class="cell" data-idx="8"></div>
   </div>
 
-  <button class="btn-menu" onclick="resetGame()">Новая игра</button>
+  <button onclick="resetGame()">Новая игра</button>
   <button class="btn-menu" onclick="window.location.href='../index.html'">В меню</button>
 
   <script>
     let currentPlayer = 'X';
     let boardState = Array(9).fill(null);
     let gameActive = true;
+    let isAiThinking = false;
     
     const cells = document.querySelectorAll('.cell');
     const status = document.getElementById('status');
@@ -178,15 +185,17 @@
 
     gameMode.addEventListener('change', () => {
       difficultyContainer.style.display = gameMode.value === 'ai' ? 'block' : 'none';
+      resetGame();
     });
 
     function handleClick(e) {
       const idx = parseInt(e.target.getAttribute('data-idx'));
-      if (boardState[idx] || !gameActive) return;
+      if (boardState[idx] || !gameActive || isAiThinking) return;
 
       makeMove(idx);
 
       if (gameActive && gameMode.value === 'ai' && currentPlayer === 'O') {
+        isAiThinking = true;
         setTimeout(aiMove, 500);
       }
     }
@@ -212,9 +221,12 @@
       status.textContent = `Ход: ${currentPlayer}`;
     }
 
-    // ИСКУССТВЕННЫЙ ИНТЕЛЛЕКТ
     function aiMove() {
-      if (!gameActive) return;
+      if (!gameActive) {
+        isAiThinking = false;
+        return;
+      }
+      
       let move;
       const diff = difficulty.value;
 
@@ -225,10 +237,11 @@
       } else if (diff === 'hard') {
         move = Math.random() > 0.2 ? getBestMove() : getRandomMove();
       } else {
-        move = getBestMove(); // Хардкор - Минимакс
+        move = getBestMove(); // На Хардкоре теперь тоже будет рандом тактик!
       }
 
       makeMove(move);
+      isAiThinking = false;
     }
 
     function getRandomMove() {
@@ -236,28 +249,37 @@
       return available[Math.floor(Math.random() * available.length)];
     }
 
+    // УЛУЧШЕНО: Теперь ИИ выбирает случайный ход из всех максимально выгодных
     function getBestMove() {
       let bestScore = -Infinity;
-      let move;
+      let bestMoves = []; // Сюда собираем все лучшие варианты
+
       for (let i = 0; i < 9; i++) {
         if (boardState[i] === null) {
           boardState[i] = 'O';
           let score = minimax(boardState, 0, false);
           boardState[i] = null;
+          
           if (score > bestScore) {
+            // Нашли ход получше? Сбрасываем старый список и пишем новый рекорд
             bestScore = score;
-            move = i;
+            bestMoves = [i];
+          } else if (score === bestScore) {
+            // Ход такой же крутой, как и предыдущий? Добавляем в пул вариантов
+            bestMoves.push(i);
           }
         }
       }
-      return move;
+      
+      // Выбираем случайный индекс из массива ЛУЧШИХ ходов
+      return bestMoves[Math.floor(Math.random() * bestMoves.length)];
     }
 
     const scores = { 'O': 10, 'X': -10, 'tie': 0 };
 
     function minimax(board, depth, isMaximizing) {
-      if (checkWin(board, 'O')) return scores['O'];
-      if (checkWin(board, 'X')) return scores['X'];
+      if (checkWin(board, 'O')) return scores['O'] - depth;
+      if (checkWin(board, 'X')) return scores['X'] + depth;
       if (board.every(cell => cell)) return scores['tie'];
 
       if (isMaximizing) {
@@ -298,10 +320,11 @@
       });
       currentPlayer = 'X';
       gameActive = true;
+      isAiThinking = false;
       status.textContent = 'Ход: X';
     }
 
     cells.forEach(cell => cell.addEventListener('click', handleClick));
-  </script>
+</script>
 </body>
 </html>
