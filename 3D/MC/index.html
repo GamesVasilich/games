@@ -5,39 +5,241 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MINECRAFT</title>
     <link rel="icon" type="image/png" href="icon.png">
-
+    <!--<script src="core.js"></script>-->
     <style>
-        body { margin: 0; overflow: hidden; font-family: 'Arial', sans-serif; background: #000; touch-action: none; }
-        #menu { position: fixed; inset: 0; background: #222; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
-         #owermenu { position: fixed; inset: 0; background: #ower222; z-index: 1010; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
-        .slot-container { display: flex; align-items: center; margin: 10px; gap: 5px; }
-        .slot-btn { width: 180px; padding: 15px; background: #4d9a30; border: none; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; }
-        .del-btn { width: 45px; padding: 15px; background: #b22222; border: none; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; }
-        .dl-btn { width: 45px; padding: 15px; background: #2ecc71; border: none; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; }
-        
-        #import-zone { margin-bottom: 20px; padding: 10px; border: 2px dashed #555; border-radius: 10px; }
-        
-        #btn-save { position: absolute; top: 10px; right: 10px; padding: 10px 15px; background: #e67e22; border: none; color: white; border-radius: 5px; z-index: 20; font-weight: bold; display: none; }
-        #landscape-msg { display: none; position: fixed; inset: 0; background: #111; color: white; z-index: 10000; justify-content: center; align-items: center; text-align: center; flex-direction: column; }
-        @media (orientation: portrait) { #landscape-msg { display: flex; } }
-        
-        #ui { position: absolute; top: 10px; left: 10px; color: white; text-shadow: 2px 2px #000; pointer-events: none; z-index: 5; font-size: 14px; }
-        #crosshair { position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; border: 2px solid white; transform: translate(-50%, -50%); pointer-events: none; }
-        #joy-zone { position: absolute; bottom: 30px; left: 30px; width: 120px; height: 120px; z-index: 10; opacity: 0.7; }
-        .controls-right { position: absolute; bottom: 20px; right: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; z-index: 10; }
-        .btn-act { width: 65px; height: 65px; background: rgba(255,255,255,0.1); border: 2px solid #fff; border-radius: 50%; color: white; font-weight: bold; }
-        #btn-jump { grid-column: span 2; height: 45px; border-radius: 20px; }
-        #inventory-screen { display: none; position: fixed; inset: 20px; background: rgba(0,0,0,0.9); z-index: 2000; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; padding: 20px; border: 2px solid #555; border-radius: 10px; overflow-y: auto; }
-        .inv-item { aspect-ratio: 1; border: 2px solid #444; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; text-align: center; cursor: pointer; font-weight: bold; }
-        #hotbar { position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); display: flex; gap: 3px; background: rgba(0,0,0,0.8); padding: 5px; border-radius: 8px; z-index: 10; }
-        .slot { min-width: 40px; height: 40px; border: 2px solid #444; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 9px; color: white; text-align: center; cursor: pointer; }
-        .selected { border-color: #00ff00; background: rgba(0,255,0,0.2); }
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background: #000;
+            touch-action: none;
+        }
+
+        #menu {
+            position: fixed;
+            inset: 0;
+            background: #222;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        #owermenu {
+            position: fixed;
+            inset: 0;
+            background: #ower222;
+            z-index: 1010;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .slot-container {
+            display: flex;
+            align-items: center;
+            margin: 10px;
+            gap: 5px;
+        }
+
+        .slot-btn {
+            width: 180px;
+            padding: 15px;
+            background: #4d9a30;
+            border: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .del-btn {
+            width: 45px;
+            padding: 15px;
+            background: #b22222;
+            border: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .dl-btn {
+            width: 45px;
+            padding: 15px;
+            background: #2ecc71;
+            border: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #import-zone {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 2px dashed #555;
+            border-radius: 10px;
+        }
+
+        #btn-save {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 10px 15px;
+            background: #e67e22;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            z-index: 20;
+            font-weight: bold;
+            display: none;
+        }
+
+        #landscape-msg {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: #111;
+            color: white;
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            flex-direction: column;
+        }
+
+        @media (orientation: portrait) {
+            #landscape-msg {
+                display: flex;
+            }
+        }
+
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            text-shadow: 2px 2px #000;
+            pointer-events: none;
+            z-index: 5;
+            font-size: 14px;
+        }
+
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            border: 2px solid white;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        #joy-zone {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            width: 120px;
+            height: 120px;
+            z-index: 10;
+            opacity: 0.7;
+        }
+
+        .controls-right {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .btn-act {
+            width: 65px;
+            height: 65px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+        }
+
+        #btn-jump {
+            grid-column: span 2;
+            height: 45px;
+            border-radius: 20px;
+        }
+
+        #inventory-screen {
+            display: none;
+            position: fixed;
+            inset: 20px;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 10px;
+            padding: 20px;
+            border: 2px solid #555;
+            border-radius: 10px;
+            overflow-y: auto;
+        }
+
+        .inv-item {
+            aspect-ratio: 1;
+            border: 2px solid #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #hotbar {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 3px;
+            background: rgba(0,0,0,0.8);
+            padding: 5px;
+            border-radius: 8px;
+            z-index: 10;
+        }
+
+        .slot {
+            min-width: 40px;
+            height: 40px;
+            border: 2px solid #444;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            color: white;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .selected {
+            border-color: #00ff00;
+            background: rgba(0,255,0,0.2);
+        }
     </style>
 </head>
 <body>
 
 <div id="landscape-msg"><h1>ПЕРЕВЕРНИ ЭКРАН 🔄</h1><p>Играй в альбомном режиме!</p></div>
-
 <div id="menu">
     <div style="position: absolute; top: 10px; left: 10px; text-align: left; z-index: 1001;">
     </div>
@@ -87,15 +289,15 @@
     let selectedBlock = 1, currentSlot = 0;
     let isRaining = false, dayTime = 0;
     const blocks = [];
-    
+
     const blockData = {
         1: { name: "Трава", color: 0x4d9a30 }, 2: { name: "Камень", color: 0x777777 },
         3: { name: "Доски", color: 0x8b4513 }, 4: { name: "Кирпич", color: 0xb22222 },
         5: { name: "Стекло", color: 0xadd8e6, op: 0.6 }, 6: { name: "Листва", color: 0x228b22 },
         7: { name: "Алмаз", color: 0x00ffff }, 8: { name: "Уголь", color: 0x333333 },
         9: { name: "Золото", color: 0xffd700 }, 10: { name: "Железо", color: 0xdcdcdc },
-        11: { name: "Песок", color: 0xedc9af }, 12: { name: "Дерево", color: 0x5d4037 },
-        21: { name: "дикор_0", color: 0xedc9f, image= }, 12: { name: "дикор_1", color: 0x5d9037 },
+        11: { name: "Песок", Color: 0xedc9af }, 12: { name: "Дерево", color: 0x5d4037 },
+        21: { name: "дикор_0", color: 0xedc9f ,}, 12: { name: "дикор_1", color: 0x5d9037 },
     };
 
     function renderMenu() {
