@@ -1,6 +1,6 @@
 # games
 
-спасибо что заглядавайте на наш сайт сылка на сайт - https://gamesvasilich8-a11y.github.io/games/
+спасибо что заглядавайте на наш сайт сылка на сайт - https://gamesvasilich.github.io/games/
 
 здесь вы можете скачять исходник страниц 
 
