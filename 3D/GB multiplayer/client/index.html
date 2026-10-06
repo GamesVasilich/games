@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GoreBox LAN PvP</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            font-family: sans-serif;
+            -webkit-touch-callout: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #111;
+            color: #fff;
+        }
+
+        #menu-screen, #death-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.95)), #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        #death-screen {
+            display: none;
+            background: rgba(100, 0, 0, 0.9);
+            z-index: 200;
+        }
+
+            #menu-screen h1, #death-screen h1 {
+                color: #e74c3c;
+                font-size: 28px;
+                margin-bottom: 15px;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+            }
+
+            #death-screen h1 {
+                color: #fff;
+            }
+
+        .menu-input, .menu-select {
+            background: #222;
+            border: 1px solid #444;
+            color: white;
+            padding: 12px;
+            font-size: 16px;
+            margin: 8px;
+            width: 80%;
+            max-width: 320px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .menu-btn {
+            background: #e74c3c;
+            border: none;
+            color: white;
+            padding: 14px 30px;
+            font-size: 16px;
+            margin: 8px;
+            width: 80%;
+            max-width: 320px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+            .menu-btn:hover {
+                background: #c0392b;
+            }
+
+        #game-ui {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            background: rgba(231, 76, 60, 0.9);
+            border: 1px solid #000;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+        }
+
+        #hud-panel {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0,0,0,0.7);
+            padding: 12px 18px;
+            border-radius: 6px;
+            border-left: 4px solid #e74c3c;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        #weapon-selector {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 8px;
+            pointer-events: auto;
+        }
+
+        .weapon-slot {
+            background: rgba(0,0,0,0.7);
+            border: 2px solid #444;
+            color: #aaa;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+            .weapon-slot.active {
+                border-color: #e74c3c;
+                color: #fff;
+                background: rgba(231,76,60,0.2);
+            }
+
+        #joystick-zone {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            pointer-events: auto;
+            touch-action: none;
+            display: none;
+        }
+
+        #joystick-knob {
+            position: absolute;
+            top: 37px;
+            left: 37px;
+            width: 46px;
+            height: 46px;
+            background: rgba(231, 76, 60, 0.7);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .action-btns {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            pointer-events: auto;
+        }
+
+        .game-btn {
+            width: 75px;
+            height: 75px;
+            background: #e74c3c;
+            border: 3px solid #c0392b;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        #reload-btn {
+            width: 60px;
+            height: 60px;
+            background: #7f8c8d;
+            border-color: #95a5a6;
+            font-size: 10px;
+            display: none;
+        }
+
+        #notification {
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(192, 57, 43, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: none;
+            z-index: 50;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="menu-screen">
+        <h1>GB MP</h1>
+        <input type="text" id="player-name" class="menu-input" placeholder="Ваш ник" >
+        <input type="text" id="server-ip" class="menu-input" placeholder="IP хоста" >
+        <button class="menu-btn" onclick="startJoin()">В бой!</button>
+    </div>
+
+    <div id="death-screen">
+        <h1>ТЫ УМЕР</h1>
+        <button class="menu-btn" onclick="respawnPlayer()">Заново</button>
+        <button class="menu-btn" style="background:#444;" onclick="returnToMenu()">В главное меню</button>
+    </div>
+
+    <div id="game-ui">
+        <div id="crosshair"></div>
+        <div id="notification">Перезарядка...</div>
+
+        <div id="hud-panel">
+            HP: <span id="hp-val">100</span><br>
+            Оружие: <span id="weapon-val">Пистолет</span><br>
+            Патроны: <span id="ammo-val">7 / 7</span>
+        </div>
+
+        <div id="weapon-selector">
+            <div class="weapon-slot active" onclick="selectWeapon(0)">Пистолет</div>
+            <div class="weapon-slot" onclick="selectWeapon(1)">Дробовик</div>
+            <div class="weapon-slot" onclick="selectWeapon(2)">Автомат</div>
+        </div>
+
+        <div id="joystick-zone"><div id="joystick-knob"></div></div>
+
+        <div class="action-btns">
+            <div class="game-btn" id="reload-btn" onclick="reloadWeapon()">ПЕРЕЗАР.</div>
+            <div class="game-btn" id="shoot-btn" onclick="shootWeapon()">ОГОНЬ</div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="core.js"></script>
+</body>
+</html>
