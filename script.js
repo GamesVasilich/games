@@ -1,7 +1,6 @@
 //const container = document.getElementById('stars-container');
 
 //if (container) {
-//  // Убеждаемся, что контейнер растянут на весь экран и блокирует мышь
 //  container.style.position = 'fixed';
 //  container.style.top = '0';
 //  container.style.left = '0';
