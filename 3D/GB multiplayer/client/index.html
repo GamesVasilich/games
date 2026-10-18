@@ -10,8 +10,9 @@
             margin: 0;
             padding: 0;
             user-select: none;
-            font-family: sans-serif;
+            font-family: 'Segoe UI', Roboto, sans-serif;
             -webkit-touch-callout: none;
+            -webkit-user-select: none;
         }
 
         body, html {
@@ -22,6 +23,7 @@
             color: #fff;
         }
 
+        /* Экраны меню и смерти */
         #menu-screen, #death-screen {
             position: absolute;
             top: 0;
@@ -39,54 +41,70 @@
 
         #death-screen {
             display: none;
-            background: rgba(100, 0, 0, 0.9);
+            background: linear-gradient(rgba(50,0,0,0.9), rgba(100,0,0,0.95));
             z-index: 200;
         }
 
             #menu-screen h1, #death-screen h1 {
                 color: #e74c3c;
-                font-size: 28px;
-                margin-bottom: 15px;
+                font-size: 36px;
+                margin-bottom: 20px;
                 text-transform: uppercase;
-                letter-spacing: 2px;
+                letter-spacing: 4px;
+                text-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
             }
 
             #death-screen h1 {
                 color: #fff;
+                text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
             }
 
-        .menu-input, .menu-select {
+        .menu-input {
             background: #222;
-            border: 1px solid #444;
+            border: 2px solid #444;
             color: white;
-            padding: 12px;
+            padding: 14px;
             font-size: 16px;
-            margin: 8px;
-            width: 80%;
+            margin: 10px;
+            width: 85%;
             max-width: 320px;
-            border-radius: 4px;
+            border-radius: 6px;
             text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
         }
+
+            .menu-input:focus {
+                border-color: #e74c3c;
+            }
 
         .menu-btn {
             background: #e74c3c;
             border: none;
             color: white;
-            padding: 14px 30px;
+            padding: 16px 30px;
             font-size: 16px;
-            margin: 8px;
-            width: 80%;
+            margin: 10px;
+            width: 85%;
             max-width: 320px;
-            border-radius: 4px;
+            border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
             text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+            transition: background 0.2s, transform 0.1s;
         }
 
             .menu-btn:hover {
                 background: #c0392b;
             }
 
+            .menu-btn:active {
+                transform: scale(0.98);
+            }
+
+        /* Игровой интерфейс */
         #game-ui {
             display: none;
             position: absolute;
@@ -102,10 +120,10 @@
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             background: rgba(231, 76, 60, 0.9);
-            border: 1px solid #000;
+            border: 2px solid #000;
             transform: translate(-50%, -50%);
             border-radius: 50%;
         }
@@ -114,13 +132,20 @@
             position: absolute;
             top: 15px;
             left: 15px;
-            background: rgba(0,0,0,0.7);
-            padding: 12px 18px;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 14px 20px;
             border-radius: 6px;
-            border-left: 4px solid #e74c3c;
-            font-size: 14px;
-            line-height: 1.5;
+            border-left: 5px solid #e74c3c;
+            font-size: 15px;
+            line-height: 1.6;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
+
+            #hud-panel span {
+                font-weight: bold;
+                color: #e74c3c;
+            }
 
         #weapon-selector {
             position: absolute;
@@ -132,46 +157,53 @@
         }
 
         .weapon-slot {
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.75);
             border: 2px solid #444;
             color: #aaa;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 13px;
             font-weight: bold;
             cursor: pointer;
             text-transform: uppercase;
+            backdrop-filter: blur(4px);
+            transition: all 0.2s;
         }
 
             .weapon-slot.active {
                 border-color: #e74c3c;
                 color: #fff;
-                background: rgba(231,76,60,0.2);
+                background: rgba(231, 76, 60, 0.25);
+                box-shadow: 0 0 10px rgba(231, 76, 60, 0.3);
             }
 
+        /* Стики и мобильное управление */
         #joystick-zone {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
-            width: 120px;
-            height: 120px;
-            background: rgba(255,255,255,0.05);
-            border: 2px solid rgba(255,255,255,0.1);
+            bottom: 30px;
+            left: 30px;
+            width: 130px;
+            height: 130px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(255, 255, 255, 0.15);
             border-radius: 50%;
             pointer-events: auto;
             touch-action: none;
             display: none;
+            backdrop-filter: blur(2px);
         }
 
         #joystick-knob {
             position: absolute;
-            top: 37px;
-            left: 37px;
+            top: 40px;
+            left: 40px;
             width: 46px;
             height: 46px;
-            background: rgba(231, 76, 60, 0.7);
+            background: rgba(231, 76, 60, 0.8);
+            border: 2px solid rgba(255,255,255,0.3);
             border-radius: 50%;
             pointer-events: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
 
         .action-btns {
@@ -179,14 +211,14 @@
             bottom: 30px;
             right: 30px;
             display: flex;
-            gap: 15px;
+            gap: 20px;
             align-items: flex-end;
             pointer-events: auto;
         }
 
         .game-btn {
-            width: 75px;
-            height: 75px;
+            width: 85px;
+            height: 85px;
             background: #e74c3c;
             border: 3px solid #c0392b;
             border-radius: 50%;
@@ -195,43 +227,130 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 13px;
             text-transform: uppercase;
             cursor: pointer;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.6);
+            transition: transform 0.05s, background-color 0.1s;
         }
 
+            .game-btn:active {
+                transform: scale(0.92);
+                background-color: #c0392b;
+            }
+
         #reload-btn {
-            width: 60px;
-            height: 60px;
-            background: #7f8c8d;
-            border-color: #95a5a6;
-            font-size: 10px;
+            width: 70px;
+            height: 70px;
+            background: #555;
+            border-color: #444;
+            font-size: 11px;
             display: none;
         }
+
+            #reload-btn:active {
+                background-color: #333;
+            }
 
         #notification {
             position: absolute;
-            top: 20%;
+            top: 25%;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(192, 57, 43, 0.9);
+            background: rgba(192, 57, 43, 0.95);
             color: white;
-            padding: 10px 20px;
-            border-radius: 4px;
+            padding: 12px 24px;
+            border-radius: 6px;
             font-weight: bold;
+            font-size: 14px;
+            letter-spacing: 1px;
             display: none;
             z-index: 50;
             text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.2);
         }
+
+        /* Адаптация под мобильные экраны (крупные тач-зоны) */
+        @media (max-width: 768px) {
+            #weapon-selector {
+                top: auto;
+                bottom: 20px;
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%);
+                gap: 5px;
+            }
+
+            .weapon-slot {
+                padding: 12px 14px;
+                font-size: 11px;
+            }
+
+            #hud-panel {
+                padding: 8px 14px;
+                font-size: 13px;
+            }
+
+            .game-btn {
+                width: 95px;
+                height: 95px;
+                font-size: 14px;
+            }
+
+            #reload-btn {
+                width: 75px;
+                height: 75px;
+            }
+        }
+
+        .history-title {
+            font-size: 14px;
+            color: #888;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #server-history {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 85%;
+            max-width: 320px;
+            max-height: 120px;
+            overflow-y: auto;
+            margin-top: 8px;
+            padding-right: 5px;
+        }
+
+        .history-item {
+            background: #252525;
+            border: 1px solid #333;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+            .history-item:hover {
+                background: #333;
+                border-color: #e74c3c;
+            }
     </style>
 </head>
 <body>
 
     <div id="menu-screen">
         <h1>GB MP</h1>
-        <input type="text" id="player-name" class="menu-input" placeholder="Ваш ник" >
-        <input type="text" id="server-ip" class="menu-input" placeholder="IP хоста" >
+        <input type="text" id="player-name" class="menu-input" placeholder="Ваш ник" autocomplete="off">
+        <input type="text" id="server-ip" class="menu-input" placeholder="IP хоста" autocomplete="off">
         <button class="menu-btn" onclick="startJoin()">В бой!</button>
+
+        <div class="history-title">История серверов:</div>
+        <div id="server-history"></div>
     </div>
 
     <div id="death-screen">
@@ -252,8 +371,8 @@
 
         <div id="weapon-selector">
             <div class="weapon-slot active" onclick="selectWeapon(0)">Пистолет</div>
-            <div class="weapon-slot" onclick="selectWeapon(1)">Дробовик</div>
-            <div class="weapon-slot" onclick="selectWeapon(2)">Автомат</div>
+            <div class="weapon-slot" onclick="withCheckSelect(1)">Дробовик</div>
+            <div class="weapon-slot" onclick="withCheckSelect(2)">Автомат</div>
         </div>
 
         <div id="joystick-zone"><div id="joystick-knob"></div></div>
@@ -263,6 +382,14 @@
             <div class="game-btn" id="shoot-btn" onclick="shootWeapon()">ОГОНЬ</div>
         </div>
     </div>
+
+    <script>
+        function withCheckSelect(index) {
+            if (typeof selectWeapon === 'function') {
+                selectWeapon(index);
+            }
+        }
+    </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>

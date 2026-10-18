@@ -19,9 +19,15 @@ let currentWeaponIndex = 0;
 let isReloading = false;
 let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
+const clock = new THREE.Clock();
+
 function startJoin() {
     let rawIp = document.getElementById('server-ip').value;
     let name = document.getElementById('player-name').value;
+
+    localStorage.setItem("gb_player_name", name);
+    localStorage.setItem("gb_server_ip", rawIp);
+    saveToHistory(rawIp);
 
     document.getElementById('menu-screen').style.display = 'none';
     document.getElementById('game-ui').style.display = 'block';
@@ -56,7 +62,6 @@ function startJoin() {
         if (data.id !== myId) addRemotePlayer(data.id, data);
     });
 
-    // Плавная интерполяция против телепортов
     socket.on('playerMoved', (data) => {
         if (players[data.id]) {
             players[data.id].targetPos.set(data.x, data.y, data.z);
@@ -86,7 +91,7 @@ function startJoin() {
 
     socket.on('playerRespawned', (data) => {
         if (data.id === myId) {
-            playerPos.set(data.x, 1.5, data.z);
+            playerPos.set(data.x, data.y || 1.5, data.z);
             playerHp = data.hp;
             document.getElementById('hp-val').innerText = playerHp;
             isDead = false;
@@ -95,6 +100,8 @@ function startJoin() {
         }
     });
 
+
+
     socket.on('disconnectPlayer', (id) => {
         if (players[id]) {
             scene.remove(players[id].mesh);
@@ -102,6 +109,57 @@ function startJoin() {
         }
     });
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    const savedName = localStorage.getItem("gb_player_name");
+    const savedIp = localStorage.getItem("gb_server_ip");
+
+    if (savedName) document.getElementById('player-name').value = savedName;
+    if (savedIp) document.getElementById('server-ip').value = savedIp;
+
+    renderServerHistory();
+});
+
+function renderServerHistory() {
+    const historyContainer = document.getElementById('server-history');
+    if (!historyContainer) return;
+
+    historyContainer.innerHTML = "";
+    let history = JSON.parse(localStorage.getItem("gb_server_history") || "[]");
+
+    if (history.length === 0) {
+        historyContainer.innerHTML = '<div style="color:#555; text-align:center; font-size:12px;">История пуста</div>';
+        return;
+    }
+
+    history.forEach(ip => {
+        let item = document.createElement('div');
+        item.className = 'history-item';
+        item.innerText = ip;
+        item.onclick = () => {
+            document.getElementById('server-ip').value = ip;
+        };
+        historyContainer.appendChild(item);
+    });
+}
+
+function saveToHistory(ip) {
+    if (!ip || ip.trim() === "") return;
+
+    let cleanedIp = ip.trim();
+    let history = JSON.parse(localStorage.getItem("gb_server_history") || "[]");
+
+    history = history.filter(item => item !== cleanedIp);
+    history.unshift(cleanedIp);
+
+    if (history.length > 5) {
+        history.pop();
+    }
+
+    localStorage.setItem("gb_server_history", JSON.stringify(history));
+    renderServerHistory(); 
+}
+
 
 function startHeartbeat() {
     if (pingTimer) clearInterval(pingTimer);
@@ -120,8 +178,11 @@ function startHeartbeat() {
 }
 
 function respawnPlayer() {
-    socket.emit('respawnMe');
+    if (socket) {
+        socket.emit('respawnMe');
+    }
 }
+
 
 function returnToMenu() {
     if (socket) socket.disconnect();
@@ -174,7 +235,38 @@ function initEngine() {
         scene.add(box);
     }
 
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    clock.getDelta(); 
     animate();
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    let delta = clock.getDelta();
+
+    if (!isDead) {
+        let speed = 5.0;
+        playerPos.x += moveX * speed * delta;
+        playerPos.z += moveZ * speed * delta;
+
+        camera.position.copy(playerPos);
+
+        if (socket && socket.connected && (moveX !== 0 || moveZ !== 0)) {
+            socket.emit('move', { x: playerPos.x, y: playerPos.y, z: playerPos.z });
+        }
+    }
+    for (let id in players) {
+        let p = players[id];
+        p.mesh.position.lerp(p.targetPos, 0.2);
+    }
+
+    renderer.render(scene, camera);
 }
 
 function addRemotePlayer(id, data) {
@@ -183,16 +275,17 @@ function addRemotePlayer(id, data) {
         new THREE.BoxGeometry(0.8, 1.8, 0.5),
         new THREE.MeshStandardMaterial({ color: 0xe74c3c })
     );
-    body.position.y = 0.9;
+    body.position.y = -0.6;
     group.add(body);
-    group.position.set(data.x, data.y, data.z);
+    group.position.set(data.x, data.y || 1.5, data.z);
     scene.add(group);
 
     players[id] = {
         mesh: group,
-        targetPos: new THREE.Vector3(data.x, data.y, data.z)
+        targetPos: new THREE.Vector3(data.x, data.y || 1.5, data.z)
     };
 }
+
 
 function selectWeapon(index) {
     if (isReloading || isDead) return;
@@ -258,12 +351,13 @@ function initControls() {
     window.addEventListener('keydown', (e) => { keys[e.code] = true; if (e.code === 'KeyR') reloadWeapon(); });
     window.addEventListener('keyup', (e) => { keys[e.code] = false; });
     window.addEventListener('mousedown', (e) => { if (e.button === 0 && !isMobile && !isDead) shootWeapon(); });
+    camera.rotation.order = 'YXZ';
 
     window.addEventListener('mousemove', (e) => {
         if (!isMobile && !isDead && document.pointerLockElement === renderer.domElement) {
-            camY -= e.movementX * 0.003;
-            camX -= e.movementY * 0.003;
-            camX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camX));
+            camY -= e.movementX * 0.002;
+            camX -= e.movementY * 0.002;
+            camX = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, camX));
         }
     });
 
@@ -276,43 +370,50 @@ function initControls() {
     let touchId = null;
     let center = { x: 60, y: 60 };
 
-    zone.addEventListener('touchstart', (e) => { touchId = e.changedTouches[0].identifier; });
-    zone.addEventListener('touchmove', (e) => {
-        for (let i = 0; i < e.changedTouches.length; i++) {
-            let t = e.changedTouches[i];
-            if (t.identifier === touchId) {
-                let rect = zone.getBoundingClientRect();
-                let x = t.clientX - rect.left - center.x;
-                let y = t.clientY - rect.top - center.y;
-                let dist = Math.hypot(x, y);
-                let max = 35;
-                if (dist > max) { x = (x / dist) * max; y = (y / dist) * max; }
-                knob.style.transform = `translate(${x}px, ${y}px)`;
-                moveX = x / max;
-                moveZ = y / max;
+    if (zone) {
+        zone.addEventListener('touchstart', (e) => { touchId = e.changedTouches[0].identifier; });
+        zone.addEventListener('touchmove', (e) => {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                let t = e.changedTouches[i];
+                if (t.identifier === touchId) {
+                    let rect = zone.getBoundingClientRect();
+                    let x = t.clientX - rect.left - center.x;
+                    let y = t.clientY - rect.top - center.y;
+                    let dist = Math.hypot(x, y);
+                    let max = 35;
+                    if (dist > max) { x = (x / dist) * max; y = (y / dist) * max; }
+                    knob.style.transform = `translate(${x}px, ${y}px)`;
+                    moveX = x / max;
+                    moveZ = y / max;
+                }
             }
-        }
-    });
-    zone.addEventListener('touchend', () => {
-        touchId = null;
-        knob.style.transform = `translate(0px, 0px)`;
-        moveX = 0; moveZ = 0;
-    });
-
+        });
+        zone.addEventListener('touchend', () => {
+            touchId = null;
+            if (knob) knob.style.transform = `translate(0px, 0px)`;
+            moveX = 0; moveZ = 0;
+        });
+    }
     let lastX = 0, lastY = 0;
     window.addEventListener('touchstart', (e) => {
         if (e.target.closest('#joystick-zone') || e.target.closest('.action-btns') || e.target.closest('#weapon-selector')) return;
-        lastX = e.touches[0].clientX;
-        lastY = e.touches[0].clientY;
+        if (e.touches.length > 0) {
+            lastX = e.touches[0].clientX;
+            lastY = e.touches[0].clientY;
+        }
     });
+
     window.addEventListener('touchmove', (e) => {
         if (e.target.closest('#joystick-zone') || e.target.closest('.action-btns') || e.target.closest('#weapon-selector')) return;
-        let t = e.touches[0];
-        camY -= (t.clientX - lastX) * 0.005;
-        camX -= (t.clientY - lastY) * 0.005;
-        camX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camX));
-        lastX = t.clientX;
-        lastY = t.clientY;
+        if (e.touches.length > 0) {
+            let t = e.touches[0]; 
+            camY -= (t.clientX - lastX) * 0.005;
+            camX -= (t.clientY - lastY) * 0.005;
+            camX = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, camX));
+
+            lastX = t.clientX;
+            lastY = t.clientY;
+        }
     });
 
     window.pcKeys = keys;
@@ -322,39 +423,49 @@ function animate() {
     requestAnimationFrame(animate);
 
     if (!isDead) {
-        let speed = 0.1;
+        let speed = 0.15;
         let fwd = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), camY);
         let right = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), camY);
 
-        let mX = moveX, mZ = moveZ;
-        if (!isMobile && window.pcKeys) {
-            if (window.pcKeys['KeyW'] || window.pcKeys['ArrowUp']) mZ = 1;
-            if (window.pcKeys['KeyS'] || window.pcKeys['ArrowDown']) mZ = -1;
+        let mX = 0;
+        let mZ = 0;
+
+        if (!isMobile && window.pcKeys && (
+            window.pcKeys['KeyW'] || window.pcKeys['ArrowUp'] ||
+            window.pcKeys['KeyS'] || window.pcKeys['ArrowDown'] ||
+            window.pcKeys['KeyA'] || window.pcKeys['ArrowLeft'] ||
+            window.pcKeys['KeyD'] || window.pcKeys['ArrowRight']
+        )) {
+            if (window.pcKeys['KeyW'] || window.pcKeys['ArrowUp']) mZ = -1;
+            if (window.pcKeys['KeyS'] || window.pcKeys['ArrowDown']) mZ = 1;
             if (window.pcKeys['KeyA'] || window.pcKeys['ArrowLeft']) mX = -1;
             if (window.pcKeys['KeyD'] || window.pcKeys['ArrowRight']) mX = 1;
+        } else {
+            mX = moveX;
+            mZ = moveZ;
         }
 
         playerPos.add(fwd.clone().multiplyScalar(-mZ * speed));
         playerPos.add(right.clone().multiplyScalar(mX * speed));
-
         playerPos.x = Math.max(-145, Math.min(145, playerPos.x));
         playerPos.z = Math.max(-145, Math.min(145, playerPos.z));
 
         camera.position.copy(playerPos);
-        camera.rotation.set(0, 0, 0);
         camera.rotation.y = camY;
         camera.rotation.x = camX;
+        camera.rotation.z = 0;
 
         if (socket && (mX !== 0 || mZ !== 0)) {
             socket.emit('move', { x: playerPos.x, y: playerPos.y, z: playerPos.z });
         }
     }
-
-    // Плавное интерполирование (LERP) позиций других игроков, убирает рассинхрон и скачки
     for (let id in players) {
         let p = players[id];
-        p.mesh.position.lerp(p.targetPos, 0.2);
+        if (p && p.mesh && p.targetPos) {
+            p.mesh.position.lerp(p.targetPos, 0.2);
+        }
     }
 
     renderer.render(scene, camera);
 }
+
