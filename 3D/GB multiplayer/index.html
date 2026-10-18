@@ -1,16 +1,38 @@
+<!DOCTYPE html>
 <html>
-    <head>
+<head>
+    <meta charset="UTF-8">
+    <title>GB info</title>
+</head>
+<body>
+    <h1>welcom to GB info!</h1>
 
-    </head>
-    <body>
-        <h1>welcom to GB info!</h1>
-        <h4>host server?! to </h4>
-        <button onclick="window.open('https://github.com/GamesVasilich/games/blob/main/3D/GB%20multiplayer/GB%20server.zip', '_blank')">
-            Download server
-        </button>
-        <h4>play?! to  </h4>
-        <button onclick="window.open('https://gamesvasilich.github.io/games/3D/GB%20multiplayer/client/', '_blank')">
-            client
-        </button>
-    </body>
-    </html>
+    <h4>host server?! to </h4>
+    <button onclick="window.open('https://github.com', '_blank')">
+        Download server
+    </button>
+
+    <h4>play?! to </h4>
+    <button onclick="window.open('https://github.io', '_blank')">
+        client
+    </button>
+
+    <hr>
+
+    <h2>How to host server (Instruction):</h2>
+    <ol>
+        <li>Download and install <b>Node.js</b> from the official website (nodejs.org).</li>
+        <li>Download the server archive using the "Download server" button above and unpack it into a folder.</li>
+        <li>
+            Open your command line / terminal (cmd) and navigate to the server folder using the command: <br>
+            <i>cd path_to_your_folder</i>
+        </li>
+        <li>
+            Install the required packages by typing the command: <br>
+            <b>npm install</b>
+        </li>
+        <li>To start the server, just run the pre-made <b>start.bat</b> file inside the server folder. It will automatically enter the launch command for you.</li>
+        <li>The server will open port <b>1000</b>. Make sure this port is open on your router if you want to play over the internet, or just use your local IP address for LAN play.</li>
+    </ol>
+</body>
+</html>
