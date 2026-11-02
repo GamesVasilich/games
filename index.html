@@ -2,332 +2,157 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🎮 Игровой HUD | Galaxy Arcade</title>
+    <link rel="stylesheet" href="style.css" />
     <script src="script.js" defer></script>
-    <style>
-        :root {
-            --primary: #00f2fe;
-            --secondary: #4facfe;
-            --accent: #f093fb;
-            --bg: #0b0b1a;
-            --glass: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --smooth: cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg);
-            color: #fff;
-            min-height: 100vh;
-            overflow-x: hidden;
-            opacity: 0;
-            animation: fadeInPage 1s ease forwards;
-        }
-
-        @keyframes fadeInPage {
-            from {
-                opacity: 0;
-                transform: scale(0.98);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        .bg-animation {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: radial-gradient(circle at 50% 50%, #1b2735 0%, #090a0f 100%);
-        }
-
-        .stars {
-            position: absolute;
-            background: white;
-            border-radius: 50%;
-            opacity: var(--o);
-            animation: drift var(--d) linear infinite;
-        }
-
-        @keyframes drift {
-            from {
-                transform: translateY(110vh);
-            }
-
-            to {
-                transform: translateY(-10vh);
-            }
-        }
-
-        .container {
-            position: relative;
-            width: 95%;
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        
-        .profile-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            background: var(--glass);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 15px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-decoration: none;
-            font-size: 1.4rem;
-            transition: transform 0.4s var(--smooth), background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-            z-index: 10;
-        }
-
-            .profile-btn:hover {
-                transform: scale(1.1);
-                background: rgba(255, 255, 255, 0.1);
-                border-color: var(--primary);
-                box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
-            }
-
-        header {
-            text-align: center;
-            margin-top: 20px;
-            margin-bottom: 40px;
-            animation: slideDown 0.8s var(--smooth);
-        }
-
-        @keyframes slideDown {
-            from {
-                transform: translateY(-30px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        header h1 {
-            font-size: 3.5rem;
-            background: linear-gradient(45deg, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 900;
-            filter: drop-shadow(0 0 15px rgba(0, 242, 254, 0.3));
-            text-transform: uppercase;
-        }
-
-        header p {
-            opacity: 0.8;
-            letter-spacing: 1px;
-        }
-
-        .section-title {
-            font-size: 1.2rem;
-            margin: 40px 0 15px;
-            color: #FFD700;
-            text-shadow: 0 0 5px #FF8C00;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-            .section-title::after {
-                content: '';
-                flex: 1;
-                height: 1px;
-                background: linear-gradient(90deg, rgba(255, 215, 0, 0.3), transparent);
-            }
-
-        .game-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 20px;
-        }
-
-        .game-card {
-            position: relative;
-            background: var(--glass);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 25px 15px;
-            text-decoration: none;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            transition: transform 0.5s var(--smooth), background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
-            will-change: transform;
-        }
-
-            .game-card:hover {
-                transform: translateY(-12px) scale(1.05);
-                background: rgba(255, 255, 255, 0.08);
-                border-color: var(--primary);
-                box-shadow: 0 15px 35px rgba(0, 242, 254, 0.2);
-            }
-
-        .icon-box {
-            width: 55px;
-            height: 55px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 15px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.6rem;
-            margin-bottom: 15px;
-            transition: transform 0.6s var(--smooth);
-        }
-
-        .game-card:hover .icon-box {
-            transform: rotate(360deg);
-            background: var(--primary);
-            color: #0b0b1a;
-        }
-
-        .game-card h4 {
-            font-size: 1.15rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .game-card span {
-            font-size: 0.75rem;
-            opacity: 0.5;
-        }
-
-        .top-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: var(--accent);
-            color: #000;
-            padding: 2px 8px;
-            border-radius: 8px;
-            font-size: 0.6rem;
-            font-weight: 900;
-        }
-
-        footer {
-            margin-top: 60px;
-            padding: 30px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-
-            footer .version {
-                opacity: 0.5;
-                font-size: 0.8rem;
-            }
-
-            footer a.support {
-                color: var(--primary);
-                text-decoration: none;
-                font-size: 0.9rem;
-                opacity: 0.8;
-                transition: opacity 0.3s;
-            }
-
-            footer a.support:hover {
-                    opacity: 1;
-                    text-decoration: underline;
-            }
-
-    </style>
 </head>
 <body>
 
     <div class="bg-animation" id="stars-container"></div>
 
-    <div class="container">
+    <div class="main-layout">
+
         
-        <!--<a href="lD_User/" class="profile-btn" title="Профиль">👤</a>-->
+        <aside class="sidebar-panel" id="game-info-panel">
+            <div class="sidebar-top-box">
+                <div class="selected-icon-box" id="preview-icon-container">
+                    <img id="preview-img" src="assets/default.png" alt="Превью игры" style="display: none;">
+                    <span id="preview-placeholder">🎮</span>
+                </div>
+                <div class="preview-badge" id="preview-badge">HUD PREVIEW</div>
+            </div>
 
-        <header>
-            <h1>Игровой HUD</h1>
-            <p>Добро пожаловать</p>
-        </header>
+            <div class="sidebar-bottom-box">
+                <div class="panel-header">
+                    <h3 id="preview-title">Выберите игру</h3>
+                </div>
 
-        <div class="section-title">Категория: 🎮 Простые игры</div>
-        <div class="game-grid">
-            <a href="built-in/tictactoe.html" class="game-card">
-                <div class="icon-box">❌</div>
-                <h4>Крестики-нолики</h4>
-                <span>Логическая битва</span>
-            </a>
-            <a href="built-in/match3.html" class="game-card">
-                <div class="icon-box">💎</div>
-                <h4>3 в ряд</h4>
-                <span>Супер комбо</span>
-            </a>
-            <a href="built-in/memory.html" class="game-card">
-                <div class="icon-box">🧠</div>
-                <h4>Память</h4>
-                <span>Найди пару</span>
-            </a>
-            <a href="built-in/snake.html" class="game-card">
-                <div class="icon-box">🐍</div>
-                <h4>Змейка</h4>
-                <span>Ретро стиль</span>
-            </a>
-            <a href="built-in/tetris.html" class="game-card">
-                <div class="icon-box">🧱</div>
-                <h4>Тетрис</h4>
-                <span>Уложи блоки</span>
-            </a>
+                <div class="panel-content" id="panel-content-body">
+                    <p id="preview-desc">Нажмите на карточку игры, чтобы посмотреть описание, характеристики и запустить её.</p>
+                </div>
+
+                <div class="panel-footer">
+                    <a href="#" id="play-btn" class="play-btn disabled">Играть</a>
+                    <a href="support/" class="support-link">support</a>
+                </div>
+            </div>
+        </aside>
+
+        
+        <div class="container">
+            <header>
+                <div class="header-info">
+                    <h1>Игровой HUD</h1>
+                    <p>Добро пожаловать</p>
+                </div>
+                <a href="lD_User/" class="profile-btn" title="Профиль">👤</a>
+            </header>
+
+            
+            <div class="category-section" data-category="simple">
+                <div class="section-title" onclick="toggleCategory('simple')">
+                    <span>Категория: 🎮 Простые игры</span>
+                    <span class="collapse-arrow">▼</span>
+                </div>
+                <div class="game-grid-wrapper">
+                    <div class="game-grid" id="grid-simple">
+                        <div class="game-card" onclick="selectGame(this, 'Крестики-нолики', 'Простые игры', 'images/tictactoe.png', 'built-in/tictactoe.html', 'Классическая логическая дуэль для двоих. Разрабатывайте стратегию и побеждайте соперника.')">
+                            <div class="icon-box">
+                                <img src="images/tictactoe.png" alt="Крестики-нолики" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                <span class="fallback-icon" style="display:none;">❌</span>
+                            </div>
+                            <div class="card-text">
+                                <h4>Крестики-нолики</h4>
+                                <span>Логическая битва</span>
+                            </div>
+                        </div>
+
+                        <div class="game-card" onclick="selectGame(this, '3 в ряд', 'Простые игры', 'images/match3.png', 'built-in/match3.html', 'Собирайте элементы в комбинации, набирайте очки и создавайте грандиозные комбо.')">
+                            <div class="icon-box">
+                                <img src="images/match3.png" alt="3 в ряд" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                <span class="fallback-icon" style="display:none;">💎</span>
+                            </div>
+                            <div class="card-text">
+                                <h4>3 в ряд</h4>
+                                <span>Супер комбо</span>
+                            </div>
+                        </div>
+
+                        <div class="game-card" onclick="selectGame(this, 'Память', 'Простые игры', 'images/memory.png', 'built-in/memory.html', 'Прокачивайте память и внимательность — открывайте закрытые карточки и ищите парные комбинации.')">
+                            <div class="icon-box">
+                                <img src="images/memory.png" alt="Память" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                <span class="fallback-icon" style="display:none;">🧠</span>
+                            </div>
+                            <div class="card-text">
+                                <h4>Память</h4>
+                                <span>Найди пару</span>
+                            </div>
+                        </div>
+
+                        <div class="game-card" onclick="selectGame(this, 'Змейка', 'Простые игры', 'images/snake.png', 'built-in/snake.html', 'Ретро-классика: управляйте растущей змейкой, собирайте бонусы и избегайте столкновений.')">
+                            <div class="icon-box">
+                                <img src="images/snake.png" alt="Змейка" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                <span class="fallback-icon" style="display:none;">🐍</span>
+                            </div>
+                            <div class="card-text">
+                                <h4>Змейка</h4>
+                                <span>Ретро стиль</span>
+                            </div>
+                        </div>
+
+                        <div class="game-card" onclick="selectGame(this, 'Тетрис', 'Простые игры', 'images/tetris.png', 'built-in/tetris.html', 'Легендарная аркадная головоломка. Заполняйте линии падающими фигурами.')">
+                            <div class="icon-box">
+                                <img src="images/tetris.png" alt="Тетрис" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                <span class="fallback-icon" style="display:none;">🧱</span>
+                            </div>
+                            <div class="card-text">
+                                <h4>Тетрис</h4>
+                                <span>Уложи блоки</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="category-section" data-category="3d">
+                <div class="section-title" onclick="toggleCategory('3d')">
+                    <span>Категория: 🕹️ 3D-игры</span>
+                    <span class="collapse-arrow">▼</span>
+                </div>
+                <div class="game-grid-wrapper">
+                    <div class="game-grid" id="grid-3d">
+                        <div class="game-card" onclick="selectGame(this, 'Minecraft', '3D-игры', 'images/minecraft.png', '3D/mc-l/index.html', 'Легендарная песочница прямо в браузере. Стройте мир, копайте ресурсы и экспериментируйте.')">
+                            <div class="icon-box">
+                                <img src="images/minecraft.png" alt="Minecraft" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                <span class="fallback-icon" style="display:none;">🧊</span>
+                            </div>
+                            <div class="card-text">
+                                <h4>Minecraft</h4>
+                                <span>старая версия</span>
+                            </div>
+                        </div>
+
+                        <div class="game-card" onclick="selectGame(this, 'GB multiplayer', '3D-игры', 'images/gb_multi.png', '3D/GB multiplayer/client', 'Динамичный 3D-шутер с поддержкой мультиплеера для игры с друзьями.')">
+                            <div class="icon-box">
+                                <img src="images/gb_multi.png" alt="GB multiplayer" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                <span class="fallback-icon" style="display:none;">🌐</span>
+                            </div>
+                            <div class="card-text">
+                                <h4>GB multiplayer</h4>
+                                <span>шутер мультиплеер</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer>
+                <div class="version">версия сайта "2.0"</div>
+            </footer>
         </div>
-
-        <div class="section-title">Категория: 🕹️ 3D-игры</div>
-        <div class="game-grid">
-            <a href="3D/mc-l/index.html" class="game-card">
-                <div class="icon-box">🧊</div>
-                <h4>Minecraft</h4>
-                <span>старая версия</span>
-            </a>
-            <!--<a href="3D/MC/" class="game-card">
-                <div class="icon-box">📦</div>
-                <h4>MC</h4>
-                <span>поддерживаемая версия</span>
-            </a>
-            времено убрана ДЛЯ ПЕРИРАБОТКИ ЭТО НЕ ИИ!-->
-            <a href="3D/GB multiplayer/client" class="game-card">
-                <div class="icon-box">🌐</div>
-                <h4>GB multiplayer</h4>
-                <span>шутер мультиплеер</span>
-            </a>
-        </div>
-
-        <footer>
-            <div class="version">версия сайта "1.8 beta"</div>
-            <a href="support/" class="support">support</a>
-        </footer>
     </div>
+
 </body>
 </html>
