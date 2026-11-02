@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>💬 Поддержка | Игровой HUD</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="script.js" defer></script>
+</head>
+<body>
+
+    <div class="bg-animation" id="stars-container"></div>
+
+    <div class="app-layout">
+
+        <!-- Левая колонка: 2 чата -->
+        <aside class="chats-sidebar">
+            <div class="sidebar-header">
+                <a href="../index.html" class="back-link">← На главную</a>
+                <h2>Поддержка</h2>
+            </div>
+
+            <div class="chats-list">
+                <div class="chat-item active" onclick="switchChat('bot')" id="chat-tab-bot">
+                    <div class="chat-avatar">🤖</div>
+                    <div class="chat-info">
+                        <h4>Бот-помощник</h4>
+                        <span>Пытается помочь</span>
+                    </div>
+                </div>
+
+                <div class="chat-item" onclick="switchChat('operator')" id="chat-tab-operator">
+                    <div class="chat-avatar">📞</div>
+                    <div class="chat-info">
+                        <h4>Реальный оператор</h4>
+                        <span>Баги и репорты</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Правая колонка: Окно активного чата -->
+        <main class="chat-main-area">
+            <div class="chat-top-bar">
+                <h3 id="current-chat-title">🤖 Бот-помощник</h3>
+                <span class="chat-status" id="current-chat-status">В сети</span>
+            </div>
+
+            <!-- История сообщений -->
+            <div class="chat-messages" id="chat-messages">
+                <!-- Подгружается скриптом -->
+            </div>
+
+            <!-- Предпросмотр прикрепленного файла -->
+            <div class="attachment-preview" id="attachment-preview" style="display: none;">
+                <span id="attachment-name"></span>
+                <button class="remove-attach-btn" onclick="clearAttachment()">✕</button>
+            </div>
+
+            <!-- Панель ввода сообщений -->
+            <div class="chat-input-bar">
+                <input type="text" id="user-input" class="chat-input" placeholder="Введите сообщение..." onkeydown="if(event.key==='Enter') sendMessage()">
+
+                <input type="file" id="file-input" style="display: none;" onchange="handleFileSelect(event)">
+
+                <button class="attach-btn" title="Прикрепить скриншот или файл" onclick="document.getElementById('file-input').click()">➕</button>
+                <button class="send-btn" onclick="sendMessage()">Отправить</button>
+            </div>
+        </main>
+
+    </div>
+
+</body>
+</html>
